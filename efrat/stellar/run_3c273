@@ -1,0 +1,2 @@
+export LD_LIBRARY_PATH=.; ./efrat <p_3c273 >3c273_eph.dat
+./ef_stellar.pl 31 3c273_eph.dat 2c15_3c273.txt 2c15sv.csi 2c15fv.csi
