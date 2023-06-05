@@ -1,3 +1,5 @@
+import json
+
 import astropy.time
 import dash
 from dash.dependencies import Input, Output, State
@@ -493,9 +495,12 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
     object_label = make_object_label(object_name, use_solar_object, solar_object_name)
 
     at_job: str = ''
+    json_job = '['
     observer_schedule: str = ''
     operator_schedule: str = ''
 
+    first_item = True
+    json_jobs = []
     for (_, azimuth, date_time, h_per, aperture, retract, before, after, track, a_obj, h_obj, vad, vhd, dec_degrees,
          p_diag, ra_degrees, sid_time_degrees) \
             in pd_table[['azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before', 'after', 'track', 'a_obj',
@@ -518,7 +523,7 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
         if not track:
             obs_start: datetime = culmination + timedelta(minutes=-4)
             rolling_start: datetime = culmination + timedelta(minutes=4) + timedelta(seconds=3)
-            motion_entry = ''
+            at_motion_entry = ''
             operator_entry = generate_operator_entry(azimuth, start_time=obs_start, rolling_start=rolling_start)
             observer_entry = generate_observer_transit_entry(azimuth, culmination, obs_start, rolling_start)
 
@@ -526,26 +531,39 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
             rolling_start: datetime = culmination + timedelta(minutes=after) + timedelta(seconds=5)
 
             if start_position == '1':
-                motion_entry = generate_motion_entry(azimuth, start_time=culm_plus_one, stop_time=culm_minus_one,
-                                                     speed=rpm, culmination=culmination)
+                at_motion_entry, json_motion_entry = generate_motion_entry(azimuth, start_time=culm_plus_one,
+                                                                           stop_time=culm_minus_one,
+                                                                           speed=rpm, culmination=culmination)
                 operator_entry = generate_operator_entry(az_p1, culm_plus_one, rolling_start)
                 observer_entry = generate_skip_observer_entry(az_p2, culm_plus_two)
             elif start_position == '2':
-                motion_entry = generate_motion_entry(azimuth, start_time=culm_plus_two, stop_time=culm_minus_one,
-                                                     speed=rpm, culmination=culmination)
+                at_motion_entry, json_motion_entry = generate_motion_entry(azimuth, start_time=culm_plus_two,
+                                                                           stop_time=culm_minus_one,
+                                                                           speed=rpm, culmination=culmination)
                 operator_entry = generate_operator_entry(az_p2, culm_plus_two, rolling_start)
                 observer_entry = generate_observer_entry_head(az_p2, culm_plus_two)
             else:
                 raise ValueError
 
+            json_dict = {
+                'comment': f'azimuth {azimuth}, culmination {culmination}',
+                'setup': True,
+                'cabin_motion': {
+                    'profile': json_motion_entry
+                }
+            }
+            json_jobs.append(json_dict)
+
             observer_entry += generate_observer_entry_body(after, az_m1, az_p1, azimuth, culm_minus_one, culm_plus_one,
                                                            culmination, rpm)
 
-        at_job += motion_entry
+        at_job += at_motion_entry
         operator_schedule += operator_entry
         observer_schedule += observer_entry
 
     with tempfile.TemporaryDirectory() as dir_name:
+        with open(f'{dir_name}/modifications.json', 'w') as f:
+            json.dump(json_jobs, f, indent=2)
         write_at_job(at_job, object_label, pd_table, dir_name)
         write_at_rmall(dir_name)
         write_stop(dir_name)
@@ -555,7 +573,7 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
         arch_name = f'{job_name}_track'
         zip_name = f'{dir_name}/{arch_name}.zip'
         with ZipFile(zip_name, 'w') as zip_obj:
-            file_list = ['at_job', 'at_rmall', 'stop', 'operator.txt', 'observer.txt']
+            file_list = ['at_job', 'at_rmall', 'stop', 'operator.txt', 'observer.txt', 'modifications.json']
             for el in file_list:
                 file_path = f'{dir_name}/{el}'
                 zip_obj.write(file_path, f'{arch_name}/{basename(file_path)}')

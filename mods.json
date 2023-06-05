@@ -1,0 +1,15 @@
+[
+  {
+    "setup": true,
+    "cabin_motion": {
+      "profile": {"start_time": "0000-00-00T00:00:00", "stop_time":  "0000-00-00T00:00:00", "speed": 222.222}
+    }
+  },
+  {
+    "setup": true,
+    "cabin_motion": {
+      "profile": {"start_time": "0000-00-00T00:00:00", "stop_time":  "0000-00-00T00:00:00", "speed": 222.222}
+    }
+  }
+
+]

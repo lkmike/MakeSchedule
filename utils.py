@@ -336,27 +336,30 @@ def generate_motion_entry(azimuth, start_time: datetime, stop_time: datetime, sp
     MOTOR_MODE_COMPUTER: str = ''
 
     culmination_str = f' Culmination @ {culmination.strftime("%H:%M:%S")}' if culmination else ''
-    return \
-            MOTOR_MODE_COMPUTER + \
-            f'# {azimuth} Start @ {start_time.strftime("%H:%M:%S")} {culmination_str} \n' \
-            f'echo "sleep {at_start_delay.seconds}; ' \
-            f'/home/sun/tmp/tcpMB/tcpio -m13 -u1 -s2 -r192.168.9.14 -l2 -p503; ' \
-            f'sleep 0.1; ' \
-            f'/home/sun/tmp/tcpMB/tcpio -m10 -u1 -r192.168.9.14 -l2 -p503; ' \
-            f'sleep 0.1; ' \
-            f'/home/sun/tmp/tcpMB/tcpio -m1 -u1 -r192.168.9.14 -l2 -p503; ' \
-            f'sleep 1; ' \
-            f'/home/sun/tmp/tcpMB/tcpio -m3 -u1 -r192.168.9.14 -l2 -p503 -s{speed_str};  ' \
-            f'sleep 0.1; ' \
-            f'/home/sun/tmp/tcpMB/tcpio -m8 -u1 -r192.168.9.14 -l2 -p503 "' \
-            f'| at {at_start_time.strftime("%H:%M")} \n' \
-            f'# Stop @ {stop_time.strftime("%H:%M:%S")}; \n' \
-            f'echo "sleep {at_stop_delay.seconds}; ' \
-            f'/home/sun/tmp/tcpMB/tcpio -m10 -u1 -r192.168.9.14 -l2 -p503; ' \
-            f'sleep 5; ' \
-            f'/home/sun/tmp/tcpMB/tcpio -m13 -u1 -s0 -r192.168.9.14 -l2 -p503  "' \
-            f'| at {at_stop_time.strftime("%H:%M")}\n\n' + \
-            MOTOR_MODE_OPERATOR
+    at_entry= \
+        MOTOR_MODE_COMPUTER + \
+        f'# {azimuth} Start @ {start_time.strftime("%H:%M:%S")} {culmination_str} \n' \
+        f'echo "sleep {at_start_delay.seconds}; ' \
+        f'/home/sun/tmp/tcpMB/tcpio -m13 -u1 -s2 -r192.168.9.14 -l2 -p503; ' \
+        f'sleep 0.1; ' \
+        f'/home/sun/tmp/tcpMB/tcpio -m10 -u1 -r192.168.9.14 -l2 -p503; ' \
+        f'sleep 0.1; ' \
+        f'/home/sun/tmp/tcpMB/tcpio -m1 -u1 -r192.168.9.14 -l2 -p503; ' \
+        f'sleep 1; ' \
+        f'/home/sun/tmp/tcpMB/tcpio -m3 -u1 -r192.168.9.14 -l2 -p503 -s{speed_str};  ' \
+        f'sleep 0.1; ' \
+        f'/home/sun/tmp/tcpMB/tcpio -m8 -u1 -r192.168.9.14 -l2 -p503 "' \
+        f'| at {at_start_time.strftime("%H:%M")} \n' \
+        f'# Stop @ {stop_time.strftime("%H:%M:%S")}; \n' \
+        f'echo "sleep {at_stop_delay.seconds}; ' \
+        f'/home/sun/tmp/tcpMB/tcpio -m10 -u1 -r192.168.9.14 -l2 -p503; ' \
+        f'sleep 5; ' \
+        f'/home/sun/tmp/tcpMB/tcpio -m13 -u1 -s0 -r192.168.9.14 -l2 -p503  "' \
+        f'| at {at_stop_time.strftime("%H:%M")}\n\n' + \
+        MOTOR_MODE_OPERATOR
+
+    json_entry = {'start_time': start_time.isoformat(), 'stop_time': stop_time.isoformat(), 'speed': speed}
+    return at_entry, json_entry
 
     # return \
     #     MOTOR_MODE_COMPUTER + \
