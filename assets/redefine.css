@@ -1,0 +1,12 @@
+.tab-content {
+    height: 100%;
+}
+
+div:has(.force-fill-height) {
+    height: 100%;
+}
+
+html {
+  font-size: 15px;
+}
+

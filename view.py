@@ -1,3 +1,4 @@
+import dash.dcc
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 
@@ -5,6 +6,7 @@ from dash_bootstrap_templates import load_figure_template
 import dash_split_pane
 
 from datetime import datetime
+
 # import model
 # from controller import *
 
@@ -26,16 +28,15 @@ pan_ctrl = dbc.Card([dbc.CardBody([
                           size='sm'), width=5),
         dbc.Col(html.Div(
             [dbc.Button('В полночь', id='aia-datetime-midnight-button', color='secondary', className='me-2 w-100',
-                        size='sm')], className='d-grid d-md-block'), width=2),
+                        size='sm')], className='d-grid d-block'), width=2),
         dbc.Col(html.Div(
             [dbc.Button('Сейчас', id='aia-datetime-now-button', color='secondary', className='me-2 w-100', size='sm')],
-            className='d-grid d-md-block'), width=2),
+            className='d-grid d-block'), width=2),
         dbc.Col(html.Div(
             [dbc.Button('Загрузить', id='aia-load-button', color='primary', className='me-2 w-100', size='sm')],
-            className='d-grid d-md-block'), width=3),
+            className='d-grid d-block'), width=3),
     ])]),
 ], style=card_style)
-
 
 pan_aia_plot = dbc.Card([dbc.CardBody(
     'A'
@@ -67,34 +68,62 @@ tab_sun = dbc.Container(dbc.Tabs([
             active_label_class_name='text-info'),
 ], ), )
 
-tab_stellar = dbc.Container([dbc.Card([dbc.CardBody([
-    dbc.Row([
-        dbc.Col([dbc.Label('α'),
-                 # dbc.Row(dbc.Col(dbc.Input(id='stellar-ra', size='sm')))], width=3),
-                 dbc.Row(dbc.Col(dbc.Input(id='stellar-ra', size='sm', value='')))], width=3),
-        dbc.Col([dbc.Label('δ'),
-                 # dbc.Row(dbc.Col(dbc.Input(id='stellar-dec', size='sm')))], width=3),
-                 dbc.Row(dbc.Col(dbc.Input(id='stellar-dec', size='sm', value='')))], width=3),
-        dbc.Col([dbc.Label('Название'),
-                 # dbc.Row(dbc.Col(dbc.Input(id='stellar-name', size='sm')))], width=2),
-                 dbc.Row(dbc.Col(dbc.Input(id='stellar-name', size='sm', value='')))], width=2),
-        dbc.Col([dbc.Label('‌'),
-                 dbc.Row(dbc.Col(dbc.Button('<', id='stellar-source-submit-button', size='sm')))], width=1),
-        dbc.Col([dbc.Label('Объект'),
-                 dbc.Row(dbc.Col(
-                     dbc.Select(options=[
-                         {'label': 'Краб', 'value': '1'},
-                         {'label': 'Лебедь А', 'value': '2'},
-                         {'label': '3c84', 'value': '3'},
-                         {'label': '3c273', 'value': '4'},
-                         {'label': 'Солнце', 'value': '[Sun]'},
-                         {'label': 'Луна', 'value': '[Moon]'}
-                     ], id='stellar-source', size='sm', value='1')
-                 ))], width=3),
-    ])
-])], style=card_style)
-])
+tab_stellar = dbc.Container([dbc.Card([
+    dbc.CardBody([
+        dbc.Row([
+            dbc.Col([dbc.Label('Объект'),
+                     dbc.Row(dbc.Col(
+                         dbc.Select(options=[
+                             {'label': 'Краб', 'value': '1'},
+                             {'label': 'Лебедь А', 'value': '2'},
+                             {'label': '3c84', 'value': '3'},
+                             {'label': '3c273', 'value': '4'},
+                             {'label': 'Солнце', 'value': '[Sun]'},
+                             {'label': 'Луна', 'value': '[Moon]'}
+                         ], id='stellar-source', size='sm', value='1', class_name='bg-dark text-secondary')
+                     ))], width=3),
+            dbc.Col([dbc.Label('‌'),
+                     dbc.Row(dbc.Col(dbc.Button('>', id='stellar-source-submit-button', size='sm')))], width=1),
+            dbc.Col([dbc.Label('Название'),
+                     # dbc.Row(dbc.Col(dbc.Input(id='stellar-name', size='sm')))], width=2),
+                     dbc.Row(dbc.Col(dbc.Input(id='stellar-name', size='sm', value='[Sun]')))], width=2),
+            dbc.Col([dbc.Label('α'),
+                     # dbc.Row(dbc.Col(dbc.Input(id='stellar-ra', size='sm')))], width=3),
+                     dbc.Row(dbc.Col(dbc.Input(id='stellar-ra', size='sm', value='')))], width=3),
+            dbc.Col([dbc.Label('δ'),
+                     # dbc.Row(dbc.Col(dbc.Input(id='stellar-dec', size='sm')))], width=3),
+                     dbc.Row(dbc.Col(dbc.Input(id='stellar-dec', size='sm', value='')))], width=3),
+        ]),
+    ]),
 
+    dbc.CardBody([
+        # dbc.Row([dbc.Label(' ')]),
+        dbc.Row([dbc.Col([dbc.Label("Координаты на Солнце", class_name='d-inline-block'),
+                          dbc.Checkbox(value=False, disabled=False, id='use-solar-object',
+                                       class_name='m-3 d-inline-block')], width=7)]),
+        dbc.Row([
+            # dbc.Col([], width=1),
+            dbc.Col([dbc.Label('ID'),
+                     dbc.Row(dbc.Col(dbc.Input(id='solar-object-name', size='sm', value='NOAA_')))], width=3),
+            dbc.Col([dbc.Label([html.I('t'), html.Sub(" ref")]),
+                     dbc.Row([dbc.Col(
+                         dbc.Input(id='solar-ref-time', value='2023-06-01T21:03:09', debounce=True, step='1',
+                                   size='sm')),
+                              html.Div([], id='solar-ref-time-sink')])], width=5),
+            dbc.Col([dbc.Label(['θ', html.Sub(html.I("x ")), ', arcsec']),
+                     dbc.Row(dbc.Col(
+                         dbc.Input(id='solar-lon', type='number', value='-875', min=-1100, max=1100, step=1, size='sm')
+                     ))], width=2),
+            dbc.Col([dbc.Label(['θ', html.Sub(html.I("y ")), ', arcsec']),
+                     dbc.Row(dbc.Col(
+                         dbc.Input(id='solar-lat', type='number', value='-112', min=-1100, max=1100, step=1, size='sm')
+                     ))], width=2),
+        ])
+
+    ]),
+
+], style=card_style)
+])
 
 source_tabs = dbc.Tabs([
     dbc.Tab(tab_stellar, label='Объекты без затей', active_label_class_name='text-info'),
@@ -110,16 +139,10 @@ common_ctrl = dbc.Container([
     dbc.Card([dbc.CardBody([dbc.Row([
         dbc.Col([dbc.Label('Начало наблюдений'),
                  dbc.Row(
-                     [dbc.Col(dbc.Input(id='schedule-begin-datetime-input', type='datetime-local', size='sm'), width=6),
-                     # [dbc.Col(dbc.Input(id='schedule-begin-datetime-input', type='datetime-local', size='sm',
-                     #                    value=(datetime.fromisoformat('2022-12-23T00:00:00')).strftime(
-                     #                        '%Y-%m-%dT%H:%M:%S')), width=6),
-                      # dbc.Col(html.Div([dbc.Button('Сегодня', id='schedule-begin-date-today-button',
-                      #                              color='secondary', className='me-2 w-100', size='sm')],
-                      #                  className='d-grid d-md-block'), width='auto'),
-                      # dbc.Col(html.Div([dbc.Button('Завтра', id='schedule-begin-date-tomorrow-button',
-                      #                              color='secondary', className='me-2 w-100', size='sm')],
-                      #                  className='d-grid d-md-block'), width='auto')
+                     # [dbc.Col(dbc.Input(id='schedule-begin-datetime-input', type='datetime-local', size='sm'), width=6),
+                     [dbc.Col(dbc.Input(id='schedule-begin-datetime-input', type='datetime-local', size='sm',
+                                        value=(datetime.fromisoformat('2023-06-02T00:00:00')).strftime(
+                                            '%Y-%m-%dT%H:%M:%S')), width=6),
                       dbc.Col(html.Div([dbc.Button('Сегодня', id='schedule-begin-date-today-button',
                                                    color='secondary', className='me-2', size='sm',
                                                    style={'minWidth': '73px', 'width': '40%'}),
@@ -130,10 +153,10 @@ common_ctrl = dbc.Container([
                       ])], width=6),
         dbc.Col([dbc.Label('Конец наблюдений'),
                  dbc.Row(
-                     [dbc.Col(dbc.Input(id='schedule-end-datetime-input', type='datetime-local', size='sm'), width=6),
-                     # [dbc.Col(dbc.Input(id='schedule-end-datetime-input', type='datetime-local', size='sm',
-                     #                    value=(datetime.fromisoformat('2022-12-23T23:00:00')).strftime(
-                     #                        '%Y-%m-%dT%H:%M:%S')), width=6),
+                     # [dbc.Col(dbc.Input(id='schedule-end-datetime-input', type='datetime-local', size='sm'), width=6),
+                     [dbc.Col(dbc.Input(id='schedule-end-datetime-input', type='datetime-local', size='sm',
+                                        value=(datetime.fromisoformat('2023-06-02T23:00:00')).strftime(
+                                            '%Y-%m-%dT%H:%M:%S')), width=6),
                       dbc.Col(html.Div([dbc.Button('Сегодня', id='schedule-end-date-today-button',
                                                    color='secondary', className='me-2', size='sm',
                                                    style={'minWidth': '73px', 'width': '40%'}),
@@ -141,22 +164,16 @@ common_ctrl = dbc.Container([
                                                    color='secondary', className='me-2', size='sm',
                                                    style={'minWidth': '73px', 'width': '40%'})],
                                        className='d-block'), width=6)
-                      # dbc.Col(html.Div([dbc.Button('Сегодня', id='schedule-end-date-today-button',
-                      #                              color='secondary', className='me-2 w-100', size='sm')],
-                      #                  className='d-grid d-md-block'), width='auto'),
-                      # dbc.Col(html.Div([dbc.Button('Завтра', id='schedule-end-date-tomorrow-button',
-                      #                              color='secondary', className='me-2 w-100', size='sm')],
-                      #                  className='d-grid d-md-block'), width='auto')
                       ])]),
     ])])], style=card_style),
     dbc.Card([
         dbc.CardBody([dbc.Label('Список азимутов:'),
                       dbc.Row([
                           # dbc.Col(html.Div([dbc.Textarea(id='azimuths', rows=3, size='sm')],
-                          #                  className='d-grid d-md-block', ), width=8),
+                          #                  className='d-grid d-block', ), width=8),
                           dbc.Col(html.Div([dbc.Textarea(id='azimuths', rows=3, size='sm',
-                                                         value='+28, +24, +20, +16, +12, +8, +4, +0, -4, -8, -12, -16, -20, -24, -28')],
-                                           className='d-grid d-md-block', ), width=8),
+                                                         value='+24, +20, +16, +12, +8, +4, +0, -4, -8, -12, -16, -20, -24')],
+                                           className='d-grid d-block', ), width=8),
                           dbc.Col([html.Div([dbc.Button('+24:-24 через 12', id='azimuths-12-button', size='sm',
                                                         color='secondary', className='me-1 w-100'),
                                              dbc.Button('+28:-28 через 4', id='azimuths-4-button', size='sm',
@@ -170,24 +187,27 @@ common_ctrl = dbc.Container([
     ], style=card_style),
 ], style={'padding': '0px'})
 
-
 antenna_tab = dbc.Container([
     dbc.Row([dbc.Card(
         id='table-container-culminations', style=card_style, body=True
     )], style={'min-height': '80%', 'max-height': '80%'}, class_name='flex-grow-1 overflow-auto'),
     dbc.Row([
         dbc.Card(dbc.CardBody([
-            dbc.Row([dbc.Col(dbc.Label('Имя задания:', size='sm'), width='auto'),
-                     dbc.Col(dbc.Input(id='job-name', type='text', class_name='me-4 w-75', size='sm'), width=2),
-                     dbc.Col([dbc.Button('Запустить csmake и csmake2', id='run-csmake', class_name='ms-4 me-2',
-                                         size='sm', disabled=True),
-                              dbc.Button('Загрузить расписания', id='load-csi', class_name='ms-4 me-2', size='sm', disabled=True),
-                              dcc.Download(id='dcc-download-csi'),
-                              dbc.Button('Загрузить задания облучателя', id='track-feed-download',
-                                         class_name='ms-4 me-2', size='sm'),
-                              dcc.Download(id='dcc-download-motion')
-                              ], width='auto'),
-                     ]),
+            dbc.Col([
+                dbc.Row([dbc.Label(dash.dcc.Markdown('&nbsp;', id='job-summary'))]),
+                dbc.Row([dbc.Col(dbc.Label('Имя задания:', size='sm'), width='auto'),
+                         dbc.Col(dbc.Input(id='job-name', type='text', class_name='me-4 w-75', size='sm'), width=2),
+                         dbc.Col([dbc.Button('Запустить csmake и csmake2', id='run-csmake', class_name='ms-4 me-2',
+                                             size='sm', disabled=True),
+                                  dbc.Button('Загрузить расписания', id='load-csi', class_name='ms-4 me-2', size='sm',
+                                             disabled=True),
+                                  dcc.Download(id='dcc-download-csi'),
+                                  dbc.Button('Загрузить задания облучателя', id='load-track',
+                                             class_name='ms-4 me-2', size='sm'),
+                                  dcc.Download(id='dcc-download-motion')
+                                  ], width='auto'),
+                         ])
+            ]),
             html.Div(id='csi-sink', style={'width': '0px', 'margin': '0px', 'padding': '0px'})
         ]), style={'position': 'absolute', 'bottom': '0px'})
     ])
@@ -241,7 +261,7 @@ tracking_tab = dbc.Container([
     ), style=card_style)], style={'flex-grow': '1'}),
     dbc.Row([
         # dbc.Card(dbc.CardBody([
-        #     dbc.Button('Загрузить файлы заданий облучателя', id='track-feed-download', class_name='me-2', size='sm'),
+        #     dbc.Button('Загрузить файлы заданий облучателя', id='load-track', class_name='me-2', size='sm'),
         #     dcc.Download(id='dcc-download-motion')
         # ]), style=card_style)
     ]),
@@ -256,8 +276,13 @@ mode_tabs = dbc.Card(dbc.Tabs([
 
 sink = html.Div('SINK', id='sink', style={'background': 'red', 'height': '0px', 'visibility': 'hidden'})
 
+
+progress_modal = html.Div([dbc.Modal([
+            dbc.ModalBody(dbc.Progress(id='update-progress', animated=True, striped=True)),
+        ], id='modal-progress', is_open=False, centered=True, keyboard=False, backdrop=False)])
+
 right_pan = dbc.Container(
-    children=[common_ctrl, mode_tabs, sink],
+    children=[common_ctrl, mode_tabs, sink, progress_modal],
     fluid=True, class_name='force-fill-height h-100 d-flex flex-column',
     style={'padding': '0px'}
 )
@@ -266,10 +291,10 @@ splitter_v = dash_split_pane.DashSplitPane(
     children=[left_pan, right_pan],
     id='splitter_v',
     split='vertical',
-    size='40%',
+    size='39%',
     style={'height': '100%'}
 )
 
+store = dcc.Store(id='obs-table')
 
-layout = dbc.Container([splitter_v], fluid=True, className='dbc', style={'height': '95vh'})
-
+layout = dbc.Container([splitter_v, store], fluid=True, className='dbc', style={'height': '95vh'})
