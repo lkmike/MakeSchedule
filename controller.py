@@ -185,6 +185,8 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
             s = get_efrat_job_stellar(object_name, ra, dec, az, date_utc, str(n))
 
         efrat_strings = run_efrat(s)
+        for e in efrat_strings:
+            print(e)
 
         table_num = []
         for i, el in enumerate(efrat_strings[:-1]):
@@ -549,7 +551,7 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
                 'comment': f'azimuth {azimuth}, culmination {culmination}',
                 'setup': True,
                 'cabin_motion': {
-                    'profile': json_motion_entry
+                    'profile': [json_motion_entry]
                 }
             }
             json_jobs.append(json_dict)

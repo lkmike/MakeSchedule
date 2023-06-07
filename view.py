@@ -80,7 +80,7 @@ tab_stellar = dbc.Container([dbc.Card([
                              {'label': '3c273', 'value': '4'},
                              {'label': 'Солнце', 'value': '[Sun]'},
                              {'label': 'Луна', 'value': '[Moon]'}
-                         ], id='stellar-source', size='sm', value='1', class_name='bg-dark text-secondary')
+                         ], id='stellar-source', size='sm', value='[Sun]', class_name='bg-dark text-secondary')
                      ))], width=3),
             dbc.Col([dbc.Label('‌'),
                      dbc.Row(dbc.Col(dbc.Button('>', id='stellar-source-submit-button', size='sm')))], width=1),
@@ -122,7 +122,12 @@ tab_stellar = dbc.Container([dbc.Card([
 
     ]),
 
-], style=card_style)
+], style=card_style),
+    dbc.Card([
+        dbc.CardBody([
+            
+        ])
+    ], style=card_style)
 ])
 
 source_tabs = dbc.Tabs([
