@@ -190,7 +190,7 @@ common_ctrl = dbc.Container([
                                                         color='secondary', className='me-1 w-100'),
                                              ], className='d-grid gap-2')], width=2)])])
     ], style=card_style),
-], style={'padding': '0px'})
+], style={'padding': '0px'}, class_name='mw-100')
 
 antenna_tab = dbc.Container([
     dbc.Row([dbc.Card(
