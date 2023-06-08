@@ -109,7 +109,7 @@ tab_stellar = dbc.Container([dbc.Card([
                      dbc.Row([dbc.Col(
                          dbc.Input(id='solar-ref-time', value='2023-06-01T21:03:09', debounce=True, step='1',
                                    size='sm')),
-                              html.Div([], id='solar-ref-time-sink')])], width=5),
+                         html.Div([], id='solar-ref-time-sink')])], width=5),
             dbc.Col([dbc.Label(['θ', html.Sub(html.I("x ")), ', arcsec']),
                      dbc.Row(dbc.Col(
                          dbc.Input(id='solar-lon', type='number', value='-875', min=-1100, max=1100, step=1, size='sm')
@@ -125,10 +125,10 @@ tab_stellar = dbc.Container([dbc.Card([
 ], style=card_style),
     dbc.Card([
         dbc.CardBody([
-            
+
         ])
     ], style=card_style)
-])
+], class_name='mw-100')
 
 source_tabs = dbc.Tabs([
     dbc.Tab(tab_stellar, label='Объекты без затей', active_label_class_name='text-info'),
@@ -190,12 +190,11 @@ common_ctrl = dbc.Container([
                                                         color='secondary', className='me-1 w-100'),
                                              ], className='d-grid gap-2')], width=2)])])
     ], style=card_style),
-], style={'padding': '0px'})
+], style={'padding': '0px', 'max-width': '100%'})
 
 antenna_tab = dbc.Container([
-    dbc.Row([dbc.Card(
-        id='table-container-culminations', style=card_style, body=True
-    )], style={'min-height': '80%', 'max-height': '80%'}, class_name='flex-grow-1 overflow-auto'),
+    dbc.Row([dbc.Card(id='table-container-culminations', class_name=card_style, body=True)],
+            style={'min-height': 'calc(100% - 150px)', 'max-height': 'calc(100% - 150px)'}, class_name='flex-grow-1 overflow-auto'),
     dbc.Row([
         dbc.Card(dbc.CardBody([
             dbc.Col([
@@ -281,10 +280,9 @@ mode_tabs = dbc.Card(dbc.Tabs([
 
 sink = html.Div('SINK', id='sink', style={'background': 'red', 'height': '0px', 'visibility': 'hidden'})
 
-
 progress_modal = html.Div([dbc.Modal([
-            dbc.ModalBody(dbc.Progress(id='update-progress', animated=True, striped=True)),
-        ], id='modal-progress', is_open=False, centered=True, keyboard=False, backdrop=False)])
+    dbc.ModalBody(dbc.Progress(id='update-progress', animated=True, striped=True)),
+], id='modal-progress', is_open=False, centered=True, keyboard=False, backdrop=False)])
 
 right_pan = dbc.Container(
     children=[common_ctrl, mode_tabs, sink, progress_modal],
