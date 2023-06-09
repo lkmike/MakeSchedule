@@ -210,6 +210,7 @@ carriage_tab = dbc.Container([
             class_name='flex-grow-1 overflow-auto border-0'),
 ], fluid=True, class_name='force-fill-height h-100 d-flex flex-column overflow-hidden')
 
+
 tracking_tab = dbc.Container([
     dbc.Row([
         dbc.Row([
