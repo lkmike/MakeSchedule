@@ -193,41 +193,48 @@ common_ctrl = dbc.Container([
 ], style={'padding': '0px', 'max-width': '100%'})
 
 antenna_tab = dbc.Container([
+    dbc.Row([dbc.Card(id='table-container-culminations', class_name=f'{card_style} border-0', body=True)],
+            style={'min-height': 'calc(100% - 138px)', 'max-height': 'calc(100% - 138px)'},
+            class_name='flex-grow-1 overflow-auto border-0'),
+], fluid=True, class_name='force-fill-height h-100 d-flex flex-column overflow-hidden')
 
-    dbc.Row([dbc.Card(id='table-container-culminations', class_name=card_style, body=True)],
-            style={'min-height': 'calc(100% - 136px)', 'max-height': 'calc(100% - 136px)'}, class_name='flex-grow-1 overflow-auto'),
+acquisition_tab = dbc.Container([
+    dbc.Row([dbc.Card(id='table-container-acquisition', class_name=card_style, body=True)],
+            style={'min-height': 'calc(100% - 138px)', 'max-height': 'calc(100% - 138px)'},
+            class_name='flex-grow-1 overflow-auto border-0'),
+], fluid=True, class_name='force-fill-height h-100 d-flex flex-column overflow-hidden')
 
-    dbc.Row([
-        dbc.Card(dbc.CardBody([
-            dbc.Col([
-                dbc.Row([dbc.Label(dash.dcc.Markdown('&nbsp;', id='job-summary'))]),
-                dbc.Row([dbc.Col(dbc.Label('Имя задания:', size='sm'), width='auto'),
-                         dbc.Col(dbc.Input(id='job-name', type='text', class_name='me-4 w-75', size='sm'), width=2),
-                         dbc.Col([dbc.Button('Запустить csmake и csmake2', id='run-csmake', class_name='ms-4 me-2',
-                                             size='sm', disabled=True),
-                                  dbc.Button('Загрузить расписания', id='load-csi', class_name='ms-4 me-2', size='sm',
-                                             disabled=True),
-                                  dcc.Download(id='dcc-download-csi'),
-                                  dbc.Button('Загрузить задания облучателя', id='load-track',
-                                             class_name='ms-4 me-2', size='sm'),
-                                  dcc.Download(id='dcc-download-motion')
-                                  ], width='auto'),
-                         ])
-            ]),
-            html.Div(id='csi-sink', style={'width': '0px', 'margin': '0px', 'padding': '0px'})
-        ]), style={'position': 'absolute', 'bottom': '0px', 'height': '136px'})
-    ])
-
+carriage_tab = dbc.Container([
+    dbc.Row([dbc.Card(id='table-container-carriage', class_name=card_style, body=True)],
+            style={'min-height': 'calc(100% - 138px)', 'max-height': 'calc(100% - 138px)'},
+            class_name='flex-grow-1 overflow-auto border-0'),
 ], fluid=True, class_name='force-fill-height h-100 d-flex flex-column overflow-hidden')
 
 tracking_tab = dbc.Container([
-
-    dbc.Row([dbc.Card(id='table-container-feed', class_name=card_style, body=True)],
-            style={'min-height': 'calc(100% - 136px)', 'max-height': 'calc(100% - 136px)'},
-            class_name='flex-grow-1 overflow-auto'),
-
     dbc.Row([
-        dbc.Card(dbc.CardBody([
+        dbc.Row([
+            html.P([
+                'Расчет производится для установок антенны в азимутах через 4°. Перед началом наблюдения в '
+                'очередном азимуте облучатель должен быть установлен оператором на репер за 1° или 2° до оси '
+                'азимута. Движение прекращается через 1° после оси азимута. '
+            ]),
+            html.P([
+                'Формируются расписания движения по реперам для оператора и наблюдателя, скрипт ',
+                html.Span('at_job ', className='text-info'),
+                'для установки заданий для привода облучателя, скрипт ',
+                html.Span('stop ', className='text-info'),
+                'для остановки движения в любое время и скрипт ', html.Span('at_rmall ', className='text-info'),
+                'для отмены всех заданий для привода, установленных в данный момент.'
+            ]),
+            html.P([
+                'При помощи поля ',
+                html.Span('Коррекция ', className='text-info'),
+                'можно ввести поправочный коэффициент к скорости движения облучателя, если практика расходится '
+                'с теорией. В этом случае надо отменить все действующие задания привода и установить новые.'
+            ])
+        ], style={'padding-top': '20px', 'padding-bottom': '20px', }),
+
+        dbc.Card([
             dbc.Row([dbc.Col(dbc.Row([
                 dbc.Col([
                     dbc.Label('1° @ 300 об/мин, с'),
@@ -246,16 +253,43 @@ tracking_tab = dbc.Container([
                                        step=0.001, size='sm')))
                          ], width=3),
             ]), width=10)]),
-        ]), style={'position': 'absolute', 'bottom': '0px', 'height': '136px'})
+        ], body=True, style={'border-width': '0'})
     ])
 
 ], fluid=True, class_name='force-fill-height h-100 d-flex flex-column overflow-hidden')
 
+task_pane = dbc.Container([
+    dbc.Row([
+        dbc.Card(dbc.CardBody([
+            dbc.Col([
+                dbc.Row([dbc.Label(dash.dcc.Markdown('#### &nbsp;', id='job-summary'))]),
+                dbc.Row([dbc.Col(dbc.Label('Имя задания:', size='sm'), width='auto'),
+                         dbc.Col(dbc.Input(id='job-name', type='text', class_name='me-4 w-75', size='sm'), width=2),
+                         dbc.Col([dbc.Button('Запустить csmake и csmake2', id='run-csmake', class_name='ms-4 me-2',
+                                             size='sm', disabled=True),
+                                  dbc.Button('Загрузить расписания', id='load-csi', class_name='ms-4 me-2', size='sm',
+                                             disabled=True),
+                                  dcc.Download(id='dcc-download-csi'),
+                                  dbc.Button('Загрузить задания облучателя', id='load-track',
+                                             class_name='ms-4 me-2', size='sm'),
+                                  dcc.Download(id='dcc-download-motion')
+                                  ], width='auto'),
+                         ])
+            ]),
+            html.Div(id='csi-sink', style={'width': '0px', 'margin': '0px', 'padding': '0px'})
+        ]), style={'position': 'absolute', 'bottom': '0px', 'height': '136px'})
+    ])
+
+])
 
 mode_tabs = dbc.Card(dbc.Tabs([
     dbc.Tab(antenna_tab, label='Расписания антенны', id='culminations-tab', class_name='h-100',
             active_label_class_name='text-info'),
-    dbc.Tab(tracking_tab, label='Задания облучателя', id='tracking-tab', class_name='h-100',
+    dbc.Tab(acquisition_tab, label='Параметры сбора', id='acquisition-tab', class_name='h-100',
+            active_label_class_name='text-info'),
+    dbc.Tab(tracking_tab, label='Движение облучателя', id='tracking-tab', class_name='h-100',
+            active_label_class_name='text-info'),
+    dbc.Tab(carriage_tab, label='Движение каретки', id='carriage-tab', class_name='h-100',
             active_label_class_name='text-info'),
 ]), class_name='flex-grow-1 overflow-hidden h-100')
 
@@ -266,7 +300,7 @@ progress_modal = html.Div([dbc.Modal([
 ], id='modal-progress', is_open=False, centered=True, keyboard=False, backdrop=False)])
 
 right_pan = dbc.Container(
-    children=[common_ctrl, mode_tabs, sink, progress_modal],
+    children=[common_ctrl, mode_tabs, task_pane, sink, progress_modal],
     fluid=True, class_name='force-fill-height h-100 d-flex flex-column',
     style={'padding': '0px'}
 )

@@ -99,7 +99,7 @@ def azimuth_set_onclick(n1, n2, n3, n4):
 @dash.callback(
     output=[
         Output('table-container-culminations', 'children'),
-        Output('table-container-feed', 'children'),
+        Output('table-container-acquisition', 'children'),
         Output('job-summary', 'children'),
         Output('run-csmake', 'disabled'),
         Output('load-csi', 'disabled'),
@@ -272,13 +272,13 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
 
         object_label = make_object_label(object_name, use_solar_object, solar_object_name)
         return antenna_html_table, feed_html_table, \
-            f'{object_label}: {begin_datetime.strftime("%Y-%m-%d %H:%M:%S")} — ' \
+            f'#### {object_label}: {begin_datetime.strftime("%Y-%m-%d %H:%M:%S")} — ' \
             f'{end_datetime.strftime("%Y-%m-%d %H:%M:%S")}', \
             False, False, False, json_antenna_out, json_feed_out
 
     except (TypeError, ValueError, AttributeError) as ex:
         print('recalculate_culminations exception:', ex)
-        return None, None, '&nbsp;', True, True, True, None, None
+        return None, None, '#### &nbsp;', True, True, True, None, None
     finally:
         set_progress((False, 100, 100))
 
