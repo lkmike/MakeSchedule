@@ -25,6 +25,13 @@ DEFAULT_AFTER = 6.6
 DEFAULT_APERTURE = '61'
 DEFAULT_RETRACT = False
 DEFAULT_TRACK = True
+DEFAULT_ATTENUATION = -10
+
+DEFAULT_REGSTART = DEFAULT_BEFORE - 0.1
+DEFAULT_REGSTOP = DEFAULT_AFTER - 0.1
+
+DEFAULT_CARRIAGEPOS = 0
+
 
 TIMEZONE = timezone('Europe/Moscow')
 
@@ -74,12 +81,12 @@ end
 
 head_style = {'margin-right': '2px', 'display': 'inline-block', 'vertical-align': 'center'}
 head_input_style = {'margin-right': '2px', 'display': 'inline-block', 'vertical-align': 'center',
-                    'width': '5em'}
+                    'width': '6em'}
 
 
-def make_dropdown(identifier, label, marginleft: str = '30px'):
+def make_dropdown(identifier, label, items, marginleft='0', width='6em'):
     item_ids = []
-    for e in ['167', '61', '51', '41']:
+    for e in items:
         item_id = copy.deepcopy(identifier)
         item_id['type'] = item_id['type'] + ':item'
         item_id['val'] = e
@@ -87,21 +94,82 @@ def make_dropdown(identifier, label, marginleft: str = '30px'):
 
     st = copy.deepcopy(head_style)
     st['margin-left'] = marginleft
+    # st['min-width'] = width
 
-    return dbc.DropdownMenu(children=[
-        dbc.DropdownMenuItem('167', id=item_ids[0]),
-        dbc.DropdownMenuItem('61', id=item_ids[1]),
-        dbc.DropdownMenuItem('51', id=item_ids[2]),
-        dbc.DropdownMenuItem('41', id=item_ids[3]),
-    ], label=label, style=st, size='sm', id=identifier)
+    result = []
+    for i, e in enumerate(items):
+        result.append(dbc.DropdownMenuItem(e, id=item_ids[i]))
+
+    return html.Div(
+        dbc.DropdownMenu(children=result, label=label, style=st, size='sm', class_name='d-grid w-100', id=identifier),
+        style={'display': 'inline-block', 'width': width})
+
+
+def make_aperture_dropdown(identifier, label, marginleft='0px'):
+    return make_dropdown(identifier, label, items=['167', '61', '51', '41'],
+                         marginleft=marginleft, width='6em')
+
+
+def make_resolution_dropdown(identifier, label, marginleft='0px'):
+    return make_dropdown(identifier, label,
+                         items=['7.8 МГц', '3.9 МГц', '1.95 МГц', '976 кГц', '488 кГц', '244 кГц', '122 кГц'],
+                         marginleft=marginleft, width='6em')
+
+
+def make_attenuation_dropdown(identifier, label, marginleft: str = '0px'):
+    items = list(map(lambda x: f'{x} дБ', np.arange(0, -32, -0.5)))
+    return make_dropdown(identifier, label,
+                         items=items,
+                         marginleft=marginleft, width='6em')
+
+
+def make_polarization_dropdown(identifier, label, marginleft: str = '0px'):
+    items = list(map(lambda x: f'{x} дБ', np.arange(0, -32, -0.5)))
+    return make_dropdown(identifier, label,
+                         items=['Л', 'П', 'Авто'],
+                         marginleft=marginleft, width='6em')
+
+
+# def make_aperture_dropdown(identifier, label, marginleft: str = '30px'):
+#     item_ids = []
+#     for e in ['167', '61', '51', '41']:
+#         item_id = copy.deepcopy(identifier)
+#         item_id['type'] = item_id['type'] + ':item'
+#         item_id['val'] = e
+#         item_ids.append(item_id)
+#
+#     st = copy.deepcopy(head_style)
+#     st['margin-left'] = marginleft
+#
+#     return dbc.DropdownMenu(children=[
+#         dbc.DropdownMenuItem('167', id=item_ids[0]),
+#         dbc.DropdownMenuItem('61', id=item_ids[1]),
+#         dbc.DropdownMenuItem('51', id=item_ids[2]),
+#         dbc.DropdownMenuItem('41', id=item_ids[3]),
+#     ], label=label, style=st, size='sm', id=identifier)
 
 
 def make_checkbox(identifier, value):
     return dbc.Checkbox(value=value, id=identifier, style={'margin-left': '30px'})
 
 
-def make_input(identifier, value):
+def make_duration_input(identifier, value):
     return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, size='sm', min=1, max=15,
+                     step=0.1)
+
+
+def make_attenuation_input(identifier, value):
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, size='sm', min=-31.5, max=0,
+                     step=0.5)
+
+
+def make_reg_input(identifier, value):
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, size='sm', min=0, max=15,
+                     step=0.1)
+
+
+def make_carriagepos_input(identifier, value):
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, size='sm', min=-150000, max=150000,
                      step=0.1)
 
 
@@ -336,7 +404,7 @@ def generate_motion_entry(azimuth, start_time: datetime, stop_time: datetime, sp
     MOTOR_MODE_COMPUTER: str = ''
 
     culmination_str = f' Culmination @ {culmination.strftime("%H:%M:%S")}' if culmination else ''
-    at_entry= \
+    at_entry = \
         MOTOR_MODE_COMPUTER + \
         f'# {azimuth} Start @ {start_time.strftime("%H:%M:%S")} {culmination_str} \n' \
         f'echo "sleep {at_start_delay.seconds}; ' \

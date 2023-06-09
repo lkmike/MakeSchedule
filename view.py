@@ -110,11 +110,11 @@ tab_stellar = dbc.Container([dbc.Card([
                          dbc.Input(id='solar-ref-time', value='2023-06-01T21:03:09', debounce=True, step='1',
                                    size='sm')),
                          html.Div([], id='solar-ref-time-sink')])], width=5),
-            dbc.Col([dbc.Label(['θ', html.Sub(html.I("x ")), ', arcsec']),
+            dbc.Col([dbc.Label(['θ', html.Sub(html.I("x ")), ', ″']),
                      dbc.Row(dbc.Col(
                          dbc.Input(id='solar-lon', type='number', value='-875', min=-1100, max=1100, step=1, size='sm')
                      ))], width=2),
-            dbc.Col([dbc.Label(['θ', html.Sub(html.I("y ")), ', arcsec']),
+            dbc.Col([dbc.Label(['θ', html.Sub(html.I("y ")), ', ″']),
                      dbc.Row(dbc.Col(
                          dbc.Input(id='solar-lat', type='number', value='-112', min=-1100, max=1100, step=1, size='sm')
                      ))], width=2),
@@ -137,7 +137,7 @@ source_tabs = dbc.Tabs([
 ])
 
 left_pan = dbc.Card(
-    children=[source_tabs], style={'height': '100%'}
+    children=[tab_stellar], style={'height': '100%'}
 )
 
 common_ctrl = dbc.Container([
@@ -193,8 +193,10 @@ common_ctrl = dbc.Container([
 ], style={'padding': '0px', 'max-width': '100%'})
 
 antenna_tab = dbc.Container([
+
     dbc.Row([dbc.Card(id='table-container-culminations', class_name=card_style, body=True)],
-            style={'min-height': 'calc(100% - 150px)', 'max-height': 'calc(100% - 150px)'}, class_name='flex-grow-1 overflow-auto'),
+            style={'min-height': 'calc(100% - 136px)', 'max-height': 'calc(100% - 136px)'}, class_name='flex-grow-1 overflow-auto'),
+
     dbc.Row([
         dbc.Card(dbc.CardBody([
             dbc.Col([
@@ -213,34 +215,19 @@ antenna_tab = dbc.Container([
                          ])
             ]),
             html.Div(id='csi-sink', style={'width': '0px', 'margin': '0px', 'padding': '0px'})
-        ]), style={'position': 'absolute', 'bottom': '0px'})
+        ]), style={'position': 'absolute', 'bottom': '0px', 'height': '136px'})
     ])
+
 ], fluid=True, class_name='force-fill-height h-100 d-flex flex-column overflow-hidden')
 
 tracking_tab = dbc.Container([
-    dbc.Row([dbc.Card([
-        dbc.CardBody([
-            dbc.Row([
-                html.P([
-                    'Расчет производится для установок антенны в азимутах через 4°. Перед началом наблюдения в '
-                    'очередном азимуте облучатель должен быть установлен оператором на репер за 1° или 2° до оси '
-                    'азимута. Движение прекращается через 1° после оси азимута. '
-                ]),
-                html.P([
-                    'Формируются расписания движения по реперам для оператора и наблюдателя, скрипт ',
-                    html.Span('at_job ', className='text-info'),
-                    'для установки заданий для привода облучателя, скрипт ',
-                    html.Span('stop ', className='text-info'),
-                    'для остановки движения в любое время и скрипт ', html.Span('at_rmall ', className='text-info'),
-                    'для отмены всех заданий для привода, установленных в данный момент.'
-                ]),
-                html.P([
-                    'При помощи поля ',
-                    html.Span('Коррекция ', className='text-info'),
-                    'можно ввести поправочный коэффициент к скорости движения облучателя, если практика расходится '
-                    'с теорией. В этом случае надо отменить все действующие задания привода и установить новые.'
-                ])
-            ], style={'padding-top': '20px', 'padding-bottom': '20px', }),
+
+    dbc.Row([dbc.Card(id='table-container-feed', class_name=card_style, body=True)],
+            style={'min-height': 'calc(100% - 136px)', 'max-height': 'calc(100% - 136px)'},
+            class_name='flex-grow-1 overflow-auto'),
+
+    dbc.Row([
+        dbc.Card(dbc.CardBody([
             dbc.Row([dbc.Col(dbc.Row([
                 dbc.Col([
                     dbc.Label('1° @ 300 об/мин, с'),
@@ -258,21 +245,15 @@ tracking_tab = dbc.Container([
                              dbc.Input(id='tracking-correction', type='number', min=0.75, max=1.5, value=1.0,
                                        step=0.001, size='sm')))
                          ], width=3),
-            ]), width=10)])
-        ])], style=card_style)]),
-    dbc.Row([dbc.Card(dbc.CardBody(
-        dbc.Table(style={'width': '100%'}),
-    ), style=card_style)], style={'flex-grow': '1'}),
-    dbc.Row([
-        # dbc.Card(dbc.CardBody([
-        #     dbc.Button('Загрузить файлы заданий облучателя', id='load-track', class_name='me-2', size='sm'),
-        #     dcc.Download(id='dcc-download-motion')
-        # ]), style=card_style)
-    ]),
-], class_name='force-fill-height h-100 d-flex flex-column')
+            ]), width=10)]),
+        ]), style={'position': 'absolute', 'bottom': '0px', 'height': '136px'})
+    ])
+
+], fluid=True, class_name='force-fill-height h-100 d-flex flex-column overflow-hidden')
+
 
 mode_tabs = dbc.Card(dbc.Tabs([
-    dbc.Tab(antenna_tab, label='Задания антенны', id='culminations-tab', class_name='h-100',
+    dbc.Tab(antenna_tab, label='Расписания антенны', id='culminations-tab', class_name='h-100',
             active_label_class_name='text-info'),
     dbc.Tab(tracking_tab, label='Задания облучателя', id='tracking-tab', class_name='h-100',
             active_label_class_name='text-info'),
@@ -298,6 +279,8 @@ splitter_v = dash_split_pane.DashSplitPane(
     style={'height': '100%'}
 )
 
-store = dcc.Store(id='obs-table')
+antenna_store = dcc.Store(id='obs-table')
+feed_store = dcc.Store(id='feed-table')
 
-layout = dbc.Container([splitter_v, store], fluid=True, className='dbc', style={'height': '95vh'})
+
+layout = dbc.Container([splitter_v, antenna_store, feed_store], fluid=True, className='dbc', style={'height': '95vh'})
