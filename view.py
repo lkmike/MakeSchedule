@@ -292,14 +292,14 @@ task_pane = dbc.Container([
           'max-width': '100%'}
 )
 mode_tabs = dbc.Card(dbc.Tabs([
-    dbc.Tab(antenna_tab, label='Расписания антенны', id='culminations-tab', class_name='h-100',
-            active_label_class_name='text-info'),
-    dbc.Tab(acquisition_tab, label='Параметры сбора', id='acquisition-tab', class_name='h-100',
-            active_label_class_name='text-info'),
-    dbc.Tab(tracking_tab, label='Параметры сопровождения', id='tracking-tab', class_name='h-100',
-            active_label_class_name='text-info'),
-    dbc.Tab(carriage_tab, label='Движение каретки', id='carriage-tab', class_name='h-100',
-            active_label_class_name='text-info'),
+    dbc.Tab(antenna_tab, label='Антенна', id='culminations-tab', class_name='h-100',
+            active_label_class_name='text-light', label_class_name='text-secondary', label_style={'width': '10em'}),
+    dbc.Tab(acquisition_tab, label='Сбор', id='acquisition-tab', class_name='h-100',
+            active_label_class_name='text-light', label_class_name='text-secondary', label_style={'width': '10em'}),
+    dbc.Tab(carriage_tab, label='Каретка', id='carriage-tab', class_name='h-100',
+            active_label_class_name='text-light', label_class_name='text-secondary', label_style={'width': '10em'}),
+    dbc.Tab(tracking_tab, label='Cопровождение', id='tracking-tab', class_name='h-100',
+            active_label_class_name='text-light', label_class_name='text-secondary', label_style={'width': '10em'}),
 ]), class_name='flex-grow-1 overflow-hidden h-100')
 
 sink = html.Div('SINK', id='sink', style={'visibility': 'hidden'})
@@ -308,8 +308,14 @@ progress_modal = html.Div([dbc.Modal([
     dbc.ModalBody(dbc.Progress(id='update-progress', animated=True, striped=True)),
 ], id='modal-progress', is_open=False, centered=True, keyboard=False, backdrop=False)])
 
+carriage_position_hints = html.Datalist(children=[
+    html.Option(value=0, label='Солнечный', style={'width': '20em'}),
+    html.Option(value=-46332, label='Чувствительный', style={'width': '20em'}),
+    html.Option(value=121000, label='Скоростной', style={'width': '20em'})
+], id='carriage-position-hints')
+
 right_pan = dbc.Container(
-    children=[common_ctrl, mode_tabs, task_pane, sink, progress_modal],
+    children=[common_ctrl, mode_tabs, task_pane, sink, progress_modal, carriage_position_hints],
     fluid=True, class_name='force-fill-height h-100 d-flex flex-column',
     style={'padding': '0px'}
 )

@@ -2,7 +2,19 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import html
 
-from utils import head_style, make_duration_input, make_aperture_dropdown, make_checkbox, deg_to_dms
+from utils import head_style, head_input_style, make_dropdown, make_checkbox, deg_to_dms
+
+apertures = ['167', '61', '51', '41']
+
+
+def make_aperture_dropdown(identifier, label, marginleft='0px'):
+    return make_dropdown(identifier, label, items=apertures,
+                         marginleft=marginleft, width='6em')
+
+
+def make_duration_input(identifier, value):
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
+                     size='sm', min=1, max=15, step=0.1)
 
 
 def std_head():
@@ -25,7 +37,7 @@ def std_column(pd_table):
 
 def motion_head():
     return html.Div([
-        html.Div('Сопровождение', style=head_style, className='me-2 align-bottom', id='tt-track'),
+        html.Div('Сопр.', style=head_style, className='me-2 align-bottom', id='tt-track'),
         dbc.Tooltip('Включить в расписание движения облучателя в режиме сопровождения', target='tt-track',
                     placement='top'),
         html.Div([
@@ -100,7 +112,7 @@ def aperture_head():
         html.Div('Апертура', style=head_style, className='me-2 align-bottom', id='tt-aperture'),
         dbc.Tooltip('Размер апертуры, щитов', target='tt-aperture', placement='top'),
         html.Div([
-            make_aperture_dropdown({'type': 'aperture-value-all', 'index': '0'}, '167'),
+            make_aperture_dropdown({'type': 'aperture-value-all', 'index': '0'}, apertures[0]),
             dbc.Button('↓', id='aperture-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='aperture-set-all', placement='bottom')
         ], className='d-block')
@@ -145,34 +157,21 @@ def azimuth_column(pd_table):
 
 
 def make_antenna_html_table(pd_table, before, after, is_sun, use_solar_object):
+    table_out_df = pd.DataFrame({
+        azimuth_head(): azimuth_column(pd_table),
+        date_head(): date_column(pd_table),
+        time_head(): time_column(pd_table),
+        height_head(): height_column(pd_table),
+        aperture_head(): aperture_column(pd_table),
+        retract_head(): retract_column(pd_table),
+        before_head(before): before_column(pd_table),
+        after_head(after): after_column(pd_table),
+        motion_head(): motion_column(pd_table),
+    })
     if is_sun and use_solar_object:
-        table_out_df = pd.DataFrame({
-            azimuth_head(): azimuth_column(pd_table),
-            date_head(): date_column(pd_table),
-            time_head(): time_column(pd_table),
-            height_head(): height_column(pd_table),
-            aperture_head(): aperture_column(pd_table),
-            retract_head(): retract_column(pd_table),
-            before_head(before): before_column(pd_table),
-            after_head(after): after_column(pd_table),
-            motion_head(): motion_column(pd_table),
-            std_head(): std_column(pd_table),
-        })
-    else:
-        table_out_df = pd.DataFrame({
-            azimuth_head(): azimuth_column(pd_table),
-            date_head(): date_column(pd_table),
-            time_head(): time_column(pd_table),
-            height_head(): height_column(pd_table),
-            aperture_head(): aperture_column(pd_table),
-            retract_head(): retract_column(pd_table),
-            before_head(before): before_column(pd_table),
-            after_head(after): after_column(pd_table),
-            motion_head(): motion_column(pd_table),
-        })
-    # if use_solar_object:
-    #     table_out_df['std'] = std_column()
-    #     table_out_df.rename(columns={'std': std_head()}, inplace=True)
+        table_out_df['std'] = std_column(pd_table)
+        table_out_df.rename(columns={'std': std_head()}, inplace=True)
+
     result = html.Div(dbc.Table.from_dataframe(table_out_df, striped=True, bordered=True),
                       style={'font-size': '0.9em'}),
     return result

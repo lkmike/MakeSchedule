@@ -1,6 +1,6 @@
 from app import app, server
 
-from controller import *
+from common_controller import *
 
 if __name__ == "__main__":
     app.run_server(

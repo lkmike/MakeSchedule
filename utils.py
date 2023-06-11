@@ -4,7 +4,6 @@ from pytz import timezone
 import copy
 
 import astropy as astropy
-import dash_bootstrap_components
 import dash_bootstrap_components as dbc
 import numpy as np
 import pandas as pd
@@ -113,82 +112,8 @@ def make_dropdown(identifier, label, items, marginleft='0', width='6em'):
         style={'display': 'inline-block', 'width': width})
 
 
-def make_aperture_dropdown(identifier, label, marginleft='0px'):
-    return make_dropdown(identifier, label, items=['167', '61', '51', '41'],
-                         marginleft=marginleft, width='6em')
-
-
-def make_resolution_dropdown(identifier, label, marginleft='0px'):
-    return make_dropdown(identifier, label,
-                         items=['7.8 МГц', '3.9 МГц', '1.95 МГц', '976 кГц', '488 кГц', '244 кГц', '122 кГц'],
-                         marginleft=marginleft, width='6em')
-
-
-def make_attenuation_dropdown(identifier, label, marginleft: str = '0px'):
-    items = list(map(lambda x: f'{x} дБ', np.arange(0, -32, -0.5)))
-    return make_dropdown(identifier, label,
-                         items=items,
-                         marginleft=marginleft, width='6em')
-
-
-def make_polarization_dropdown(identifier, label, marginleft: str = '0px'):
-    items = list(map(lambda x: f'{x} дБ', np.arange(0, -32, -0.5)))
-    return make_dropdown(identifier, label,
-                         items=['Л', 'П', 'Авто'],
-                         marginleft=marginleft, width='6em')
-
-
-# def make_aperture_dropdown(identifier, label, marginleft: str = '30px'):
-#     item_ids = []
-#     for e in ['167', '61', '51', '41']:
-#         item_id = copy.deepcopy(identifier)
-#         item_id['type'] = item_id['type'] + ':item'
-#         item_id['val'] = e
-#         item_ids.append(item_id)
-#
-#     st = copy.deepcopy(head_style)
-#     st['margin-left'] = marginleft
-#
-#     return dbc.DropdownMenu(children=[
-#         dbc.DropdownMenuItem('167', id=item_ids[0]),
-#         dbc.DropdownMenuItem('61', id=item_ids[1]),
-#         dbc.DropdownMenuItem('51', id=item_ids[2]),
-#         dbc.DropdownMenuItem('41', id=item_ids[3]),
-#     ], label=label, style=st, size='sm', id=identifier)
-
-
 def make_checkbox(identifier, value):
     return dbc.Checkbox(value=value, id=identifier, style={'margin-left': '30px'})
-
-
-def make_duration_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
-                     size='sm', min=1, max=15, step=0.1)
-
-
-def make_attenuation_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
-                     size='sm', min=-31.5, max=0, step=0.5)
-
-
-def make_reg_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
-                     size='sm', min=0, max=15, step=0.1)
-
-
-def make_carriagepos_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
-                     size='sm', min=-150000, max=150000, step=1)
-
-
-def make_amplitude_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
-                     size='sm', min=0, max=200000, step=1)
-
-
-def make_carmove_input(identifier, value):
-    return dbc.Input(value=value, debounce=True, id=identifier, type='text',
-                     style={**head_input_style, **{'width': '10em'}}, class_name='border-dark', size='sm')
 
 
 def dms_to_deg(d: int, m: int, s: float) -> float:
