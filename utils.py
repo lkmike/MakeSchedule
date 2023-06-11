@@ -20,6 +20,8 @@ from sunpy import coordinates
 from astropy.coordinates import SkyCoord
 import astropy.time
 
+from app import app
+
 DEFAULT_BEFORE = 6.1
 DEFAULT_AFTER = 6.6
 DEFAULT_APERTURE = '61'
@@ -31,7 +33,13 @@ DEFAULT_REGSTART = DEFAULT_BEFORE - 0.1
 DEFAULT_REGSTOP = DEFAULT_AFTER - 0.1
 
 DEFAULT_CARRIAGEPOS = 0
-
+DEFAULT_CARRIAGE_ENABLED = False
+DEFAULT_CARRIAGE_OSCENABLED = False
+DEFAULT_CARRIAGE_AMPLITUDE = 50000
+DEFAULT_CARRIAGE_SPEED = 800
+DEFAULT_CARRIAGE_ACCEL = 400
+DEFAULT_CARRIAGE_DECEL = 400
+DEFAULT_CARRIAGE_DWELL = 1
 
 TIMEZONE = timezone('Europe/Moscow')
 
@@ -154,23 +162,33 @@ def make_checkbox(identifier, value):
 
 
 def make_duration_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, size='sm', min=1, max=15,
-                     step=0.1)
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
+                     size='sm', min=1, max=15, step=0.1)
 
 
 def make_attenuation_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, size='sm', min=-31.5, max=0,
-                     step=0.5)
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
+                     size='sm', min=-31.5, max=0, step=0.5)
 
 
 def make_reg_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, size='sm', min=0, max=15,
-                     step=0.1)
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
+                     size='sm', min=0, max=15, step=0.1)
 
 
 def make_carriagepos_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, size='sm', min=-150000, max=150000,
-                     step=0.1)
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
+                     size='sm', min=-150000, max=150000, step=1)
+
+
+def make_amplitude_input(identifier, value):
+    return dbc.Input(value=value, id=identifier, type='number', style=head_input_style, class_name='border-dark',
+                     size='sm', min=0, max=200000, step=1)
+
+
+def make_carmove_input(identifier, value):
+    return dbc.Input(value=value, debounce=True, id=identifier, type='text',
+                     style={**head_input_style, **{'width': '10em'}}, class_name='border-dark', size='sm')
 
 
 def dms_to_deg(d: int, m: int, s: float) -> float:

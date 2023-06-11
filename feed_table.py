@@ -104,27 +104,10 @@ def regstop_head(attenuation):
 
 def regstop_column(pd_table):
     return pd_table[['idx', 'regstop']].apply(
-        lambda x: make_carriagepos_input({'type': 'regstop', 'index': str(x['idx'])}, x['regstop']), axis=1)
+        lambda x: make_reg_input({'type': 'regstop', 'index': str(x['idx'])}, x['regstop']), axis=1)
 
 
-def carriagepos_head(attenuation):
-    return html.Div([
-        html.Div('Каретка', style=head_style, className='me-2 align-bottom', id='tt-carriagepos'),
-        dbc.Tooltip('Исходное положение каретки', target='tt-carriagepos', placement='top'),
-        html.Div([
-            make_carriagepos_input('carriagepos-value-all', attenuation),
-            dbc.Button('↓', id='carriagepos-set-all', size='sm', class_name='align-bottom'),
-            dbc.Tooltip('Установить значение для всех азимутов', target='carriagepos-set-all', placement='bottom')
-        ], className='d-block')
-    ])
-
-
-def carriagepos_column(pd_table):
-    return pd_table[['idx', 'carriagepos']].apply(
-        lambda x: make_reg_input({'type': 'carriagepos', 'index': str(x['idx'])}, x['carriagepos']), axis=1)
-
-
-def make_feed_table(pd_table, attenuation, regstart, regstop, carriagepos):
+def make_feed_html_table(pd_table, attenuation, regstart, regstop):
     table_out_df = pd.DataFrame({
         azimuth_head(): azimuth_column(pd_table),
         date_head(): date_column(pd_table),
@@ -133,7 +116,6 @@ def make_feed_table(pd_table, attenuation, regstart, regstop, carriagepos):
         polarization_head(): polarization_column(pd_table),
         regstart_head(regstart): regstart_column(pd_table),
         regstop_head(regstop): regstop_column(pd_table),
-        carriagepos_head(carriagepos): carriagepos_column(pd_table),
     })
     result = html.Div(dbc.Table.from_dataframe(table_out_df, striped=True, bordered=True),
                       style={'font-size': '0.9em'}),

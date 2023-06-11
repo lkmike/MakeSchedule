@@ -288,7 +288,8 @@ task_pane = dbc.Container([
             ])
         ], class_name='w-100 h-100')
     ], style=card_style, class_name='border-top border-dark'),
-], style={'position': 'absolute', 'bottom': '0px', 'height': '102px', 'padding': '1px', 'margin': '0', 'max-width': '100%'}
+], style={'position': 'absolute', 'bottom': '0px', 'height': '102px', 'padding': '1px', 'margin': '0',
+          'max-width': '100%'}
 )
 mode_tabs = dbc.Card(dbc.Tabs([
     dbc.Tab(antenna_tab, label='Расписания антенны', id='culminations-tab', class_name='h-100',
@@ -323,5 +324,7 @@ splitter_v = dash_split_pane.DashSplitPane(
 
 antenna_store = dcc.Store(id='obs-table')
 feed_store = dcc.Store(id='feed-table')
+carriage_store = dcc.Store(id='carriage-table')
 
-layout = dbc.Container([splitter_v, antenna_store, feed_store], fluid=True, className='dbc', style={'height': '95vh'})
+layout = dbc.Container([splitter_v, antenna_store, feed_store, carriage_store], fluid=True, className='dbc',
+                       style={'height': '95vh'})

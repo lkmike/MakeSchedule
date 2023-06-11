@@ -25,7 +25,7 @@ def std_column(pd_table):
 
 def motion_head():
     return html.Div([
-        html.Div('Сопр.', style=head_style, className='me-2 align-bottom', id='tt-track'),
+        html.Div('Сопровождение', style=head_style, className='me-2 align-bottom', id='tt-track'),
         dbc.Tooltip('Включить в расписание движения облучателя в режиме сопровождения', target='tt-track',
                     placement='top'),
         html.Div([
@@ -44,7 +44,7 @@ def motion_column(pd_table):
 
 def after_head(after):
     return html.Div([
-        html.Div('После   ', style=head_style, className='me-2 align-bottom', id='tt-after'),
+        html.Div('После, мин', style=head_style, className='me-2 align-bottom', id='tt-after'),
         dbc.Tooltip('От кульминации до начала следующей установки антенны, мин', target='tt-after',
                     placement='top'),
         html.Div([
@@ -62,7 +62,7 @@ def after_column(pd_table):
 
 def before_head(before):
     return html.Div([
-        html.Div('До     ', style=head_style, className='me-2 align-bottom', id='tt-before'),
+        html.Div('До, мин', style=head_style, className='me-2 align-bottom', id='tt-before'),
         dbc.Tooltip('От установки антенны до кульминации, мин', target='tt-before', placement='top'),
         html.Div([
             make_duration_input('before-value-all', before),
@@ -144,7 +144,7 @@ def azimuth_column(pd_table):
     return pd_table['azimuth']
 
 
-def make_antenna_table(pd_table, before, after, is_sun, use_solar_object):
+def make_antenna_html_table(pd_table, before, after, is_sun, use_solar_object):
     if is_sun and use_solar_object:
         table_out_df = pd.DataFrame({
             azimuth_head(): azimuth_column(pd_table),
