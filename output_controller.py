@@ -1,3 +1,4 @@
+from acquisition_table import resolution_to_avgpts, polarization_to_pol, polarization_to_auto
 from app import app
 from dash import dcc, ctx, ALL
 from dash.dependencies import Input, Output, State, ALL
@@ -18,7 +19,7 @@ from utils import *
     State('stellar-name', 'value'),
     State('use-solar-object', 'value'),
     State('solar-object-name', 'value'),
-    State('obs-table', 'data'),
+    State('antenna-table', 'data'),
     prevent_initial_call=True
 )
 def run_csmake_onclick(n, job_name, object_name, use_solar_object, solar_object_name, json_data):
@@ -44,7 +45,7 @@ def run_csmake_onclick(n, job_name, object_name, use_solar_object, solar_object_
     State('stellar-name', 'value'),
     State('use-solar-object', 'value'),
     State('solar-object-name', 'value'),
-    State('obs-table', 'data'),
+    State('antenna-table', 'data'),
     prevent_initial_call=True
 )
 def load_csi_onclick(n, job_name, object_name, use_solar_object, solar_object_name, json_data):
@@ -83,12 +84,18 @@ def load_csi_onclick(n, job_name, object_name, use_solar_object, solar_object_na
     State('job-name', 'value'),
     State('use-solar-object', 'value'),
     State('solar-object-name', 'value'),
-    State('obs-table', 'data'),
+    State('antenna-table', 'data'),
+    State('acquisition-table', 'data'),
+    State('carriage-table', 'data'),
     prevent_initial_call=True
 )
 def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, correction: float,
-                       object_name: str, job_name: str, use_solar_object, solar_object_name, json_data):
-    pd_table = pd.read_json(json_data[1:-1], orient='split')
+                       object_name: str, job_name: str, use_solar_object, solar_object_name, json_antenna,
+                       json_acquisition, json_carriage):
+    antanna_table = pd.read_json(json_antenna[1:-1], orient='split')
+    acquisition_table = pd.read_json(json_acquisition[1:-1], orient='split')
+    carriage_table = pd.read_json(json_carriage[1:-1], orient='split')
+
     object_label = make_object_label(object_name, use_solar_object, solar_object_name)
 
     at_job: str = ''
@@ -99,10 +106,14 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
     first_item = True
     json_jobs = []
     for (_, azimuth, date_time, h_per, aperture, retract, before, after, track, a_obj, h_obj, vad, vhd, dec_degrees,
-         p_diag, ra_degrees, sid_time_degrees) \
-            in pd_table[['azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before', 'after', 'track', 'a_obj',
-                         'h_obj', 'vad', 'vhd', 'dec_degrees', 'pos_angle_diag', 'ra_degrees',
-                         'sid_time_degrees']].itertuples():
+         p_diag, ra_degrees, sid_time_degrees), \
+            (_, resolution, attenuation, polarization, regstart, regstop), \
+            (_, carenabled, carriagepos, oscenabled, amplitude, speed1, accel1, decel1, dwell1, speed2, accel2, decel2,
+             dwell2) \
+            in antanna_table[['azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before', 'after', 'track',
+                              'a_obj', 'h_obj', 'vad', 'vhd', 'dec_degrees', 'pos_angle_diag', 'ra_degrees',
+                              'sid_time_degrees']].itertuples(), \
+            acquisition_table.itertuples(), carriage_table.itertuples():
 
         s_per_degree, rpm = calculate_rpm(a_obj=a_obj, h_obj=h_obj, dec_degrees=dec_degrees,
                                           seconds_per_degree300=s_per_degree_at_300, ra_degrees=ra_degrees,
@@ -149,6 +160,40 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
                     'profile': [json_motion_entry]
                 }
             }
+
+            if (carenabled):
+                feed_offset = 121000 - carriagepos
+            else:
+                feed_offset = np.nan
+
+            feed_offset_time = feed_offset_to_time(feed_offset, dec_degrees)
+
+            carriage_motion = {}
+
+            json_dict = {
+                'azimuth': azimuth,
+                'object': object_label,
+                'culmination': culmination,
+                'feed_offset': feed_offset,
+                'feed_offset_time': feed_offset_time,
+                'record_duration_rlc': [-before * 60, after * 60],
+                'pulse1_rlc': [-regstart * 60, -regstart * 60 + 5],
+                'pulse2_rlc': [regstop, regstop + 5],
+                'dec': dec_degrees,
+                'ra': ra_degrees,
+                'fits_words': {},
+                'cabin_motion': {
+                    'profile': [json_motion_entry]
+                },
+                'carriage_motion': carriage_motion,
+                'acquisition_parameters': {
+                    'average_points': resolution_to_avgpts[resolution],
+                    'attenuator_common': attenuation,
+                    'polarization': polarization_to_pol[polarization],
+                    'auto_polarization_switch': polarization_to_auto[polarization],
+                },
+                'override_mainobs': False
+            }
             json_jobs.append(json_dict)
 
             observer_entry += generate_observer_entry_body(after, az_m1, az_p1, azimuth, culm_minus_one, culm_plus_one,
@@ -161,11 +206,11 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
     with tempfile.TemporaryDirectory() as dir_name:
         with open(f'{dir_name}/modifications.json', 'w') as f:
             json.dump(json_jobs, f, indent=2)
-        write_at_job(at_job, object_label, pd_table, dir_name)
+        write_at_job(at_job, object_label, antanna_table, dir_name)
         write_at_rmall(dir_name)
         write_stop(dir_name)
-        write_operator_schedule(operator_schedule, object_label, pd_table, dir_name)
-        write_observer_schedule(observer_schedule, object_label, pd_table, dir_name)
+        write_operator_schedule(operator_schedule, object_label, antanna_table, dir_name)
+        write_observer_schedule(observer_schedule, object_label, antanna_table, dir_name)
 
         arch_name = f'{job_name}_track'
         zip_name = f'{dir_name}/{arch_name}.zip'

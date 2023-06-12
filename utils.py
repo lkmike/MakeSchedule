@@ -26,19 +26,8 @@ DEFAULT_AFTER = 6.6
 DEFAULT_APERTURE = '61'
 DEFAULT_RETRACT = False
 DEFAULT_TRACK = True
-DEFAULT_ATTENUATION = -10
 
-DEFAULT_REGSTART = DEFAULT_BEFORE - 0.1
-DEFAULT_REGSTOP = DEFAULT_AFTER - 0.1
-
-DEFAULT_CARRIAGEPOS = 0
-DEFAULT_CARRIAGE_ENABLED = False
-DEFAULT_CARRIAGE_OSCENABLED = False
-DEFAULT_CARRIAGE_AMPLITUDE = 50000
-DEFAULT_CARRIAGE_SPEED = 800
-DEFAULT_CARRIAGE_ACCEL = 400
-DEFAULT_CARRIAGE_DECEL = 400
-DEFAULT_CARRIAGE_DWELL = 1
+MAX_DAYS = 10
 
 TIMEZONE = timezone('Europe/Moscow')
 
@@ -608,3 +597,7 @@ def generate_observer_transit_entry(azimuth, culmination, obs_start, rolling_sta
     return f'\n{azimuth}: Транзит; кульминация в {culmination.strftime("%H:%M:%S")}; ' \
            f'начало в {obs_start.strftime("%H:%M:%S")}, ' \
            f'перекатка в {rolling_start.strftime("%H:%M:%S")}\n'
+
+
+def feed_offset_to_time(fo, delta):
+    return timedelta(seconds=fo / (1.0537 * np.cos(delta * np.pi / 180)))

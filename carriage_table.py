@@ -2,7 +2,19 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import html
 
-from utils import *
+from utils import head_style, head_input_style, make_checkbox
+
+DEFAULT_CARRIAGE_POS = 0
+DEFAULT_CARRIAGE_ENABLED = False
+DEFAULT_CARRIAGE_OSCENABLED = False
+DEFAULT_CARRIAGE_AMPLITUDE = 50000
+DEFAULT_CARRIAGE_SPEED = 800
+DEFAULT_CARRIAGE_ACCEL = 400
+DEFAULT_CARRIAGE_DECEL = 400
+DEFAULT_CARRIAGE_DWELL = 1
+
+DEFAULT_CARMOVE_STRING = '/'.join(list(map(str, [DEFAULT_CARRIAGE_SPEED, DEFAULT_CARRIAGE_ACCEL,
+                                                 DEFAULT_CARRIAGE_DECEL, DEFAULT_CARRIAGE_DWELL])))
 
 
 def make_carriagepos_input(identifier, value):
@@ -26,7 +38,7 @@ def azimuth_head():
 
 
 def azimuth_column(pd_table):
-    return pd_table['azimuth']
+    return pd_table['azimuth'].apply(lambda x: f'{int(x):+03d}')
 
 
 def date_head():
@@ -47,7 +59,7 @@ def carenabled_head():
             dbc.Button('✗', id='carenabled-reset-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Сбросить все', target='carenabled-reset-all', placement='bottom')
         ], className='d-block')
-    ], className='pb-2 pt-1')
+    ])
 
 
 def carenabled_column(pd_table):
@@ -55,7 +67,7 @@ def carenabled_column(pd_table):
         lambda x: make_checkbox({'type': 'carenabled', 'index': str(x['idx'])}, x['carenabled']), axis=1)
 
 
-def carriagepos_head(position):
+def carriagepos_head(position=DEFAULT_CARRIAGE_POS):
     return html.Div([
         html.Div('Положение', style=head_style, className='me-2 align-bottom', id='tt-carriagepos'),
         dbc.Tooltip('Центральное положение каретки', target='tt-carriagepos', placement='top'),
@@ -64,7 +76,7 @@ def carriagepos_head(position):
             dbc.Button('↓', id='carriagepos-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='carriagepos-set-all', placement='bottom')
         ], className='d-block')
-    ], className='pb-2')
+    ])
 
 
 def carriagepos_column(pd_table):
@@ -82,7 +94,7 @@ def oscenabled_head():
             dbc.Button('✗', id='oscenabled-reset-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Сбросить все', target='oscenabled-reset-all', placement='bottom')
         ], className='d-block')
-    ], className='pb-2')
+    ])
 
 
 def oscenabled_column(pd_table):
@@ -90,7 +102,7 @@ def oscenabled_column(pd_table):
         lambda x: make_checkbox({'type': 'oscenabled', 'index': str(x['idx'])}, x['oscenabled']), axis=1)
 
 
-def amplitude_head(amplitude):
+def amplitude_head(amplitude=DEFAULT_CARRIAGE_AMPLITUDE):
     return html.Div([
         html.Div('Амплитуда', style=head_style, className='me-2 align-bottom', id='tt-amplitude'),
         dbc.Tooltip('Амплитуда движения каретки относительно центрального положения', target='tt-amplitude', placement='top'),
@@ -99,7 +111,7 @@ def amplitude_head(amplitude):
             dbc.Button('↓', id='amplitude-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='amplitude-set-all', placement='bottom')
         ], className='d-block')
-    ], className='pb-2')
+    ])
 
 
 def amplitude_column(pd_table):
@@ -107,7 +119,7 @@ def amplitude_column(pd_table):
         lambda x: make_amplitude_input({'type': 'amplitude', 'index': str(x['idx'])}, x['amplitude']), axis=1)
 
 
-def carmove1_head(carmove1):
+def carmove1_head(carmove1=DEFAULT_CARMOVE_STRING):
     return html.Div([
         html.Div('Параметры 1', style=head_style, className='me-2 align-bottom', id='tt-carmove1'),
         dbc.Tooltip('Скорость, ускорение, замедление и пауза в прямом направлении', target='tt-carmove1', placement='top'),
@@ -116,7 +128,7 @@ def carmove1_head(carmove1):
             dbc.Button('↓', id='carmove1-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='carmove1-set-all', placement='bottom')
         ], className='d-block')
-    ], className='pb-2')
+    ])
 
 
 def carmove1_column(pd_table):
@@ -124,7 +136,7 @@ def carmove1_column(pd_table):
         lambda x: make_carmove_input({'type': 'carmove1', 'index': str(x['idx'])}, f'{x["speed1"]}/{x["accel1"]}/{x["decel1"]}/{x["dwell1"]}'), axis=1)
 
 
-def carmove2_head(carmove2):
+def carmove2_head(carmove2=DEFAULT_CARMOVE_STRING):
     return html.Div([
         html.Div('Параметры 2', style=head_style, className='me-2 align-bottom', id='tt-carmove2'),
         dbc.Tooltip('Скорость, ускорение, замедление и пауза в обратном направлении', target='tt-carmove2', placement='top'),
@@ -133,7 +145,7 @@ def carmove2_head(carmove2):
             dbc.Button('↓', id='carmove2-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='carmove2-set-all', placement='bottom')
         ], className='d-block')
-    ], className='pb-2')
+    ])
 
 
 def carmove2_column(pd_table):
@@ -146,11 +158,11 @@ def make_carriage_html_table(pd_table):
         azimuth_head(): azimuth_column(pd_table),
         date_head(): date_column(pd_table),
         carenabled_head(): carenabled_column(pd_table),
-        carriagepos_head(DEFAULT_CARRIAGEPOS): carriagepos_column(pd_table),
+        carriagepos_head(): carriagepos_column(pd_table),
         oscenabled_head(): oscenabled_column(pd_table),
-        amplitude_head(DEFAULT_CARRIAGE_AMPLITUDE): amplitude_column(pd_table),
-        carmove1_head('800/400/400/1'): carmove1_column(pd_table),
-        carmove2_head('800/400/400/1'): carmove2_column(pd_table),
+        amplitude_head(): amplitude_column(pd_table),
+        carmove1_head(): carmove1_column(pd_table),
+        carmove2_head(): carmove2_column(pd_table),
     })
     result = html.Div(dbc.Table.from_dataframe(table_out_df, striped=True, bordered=True),
                       style={'font-size': '0.9em'}),

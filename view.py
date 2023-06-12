@@ -328,8 +328,8 @@ splitter_v = dash_split_pane.DashSplitPane(
     style={'height': '100%'}
 )
 
-antenna_store = dcc.Store(id='obs-table')
-feed_store = dcc.Store(id='feed-table')
+antenna_store = dcc.Store(id='antenna-table')
+feed_store = dcc.Store(id='acquisition-table')
 carriage_store = dcc.Store(id='carriage-table')
 
 layout = dbc.Container([splitter_v, antenna_store, feed_store, carriage_store], fluid=True, className='dbc',

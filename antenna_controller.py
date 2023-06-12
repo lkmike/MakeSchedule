@@ -12,7 +12,6 @@ from acquisition_table import make_acquisition_html_table
 from carriage_table import make_carriage_html_table
 
 
-
 @app.callback(
     Output({'type': 'aperture-value-all', 'index': '0'}, "label"),
     list(map(lambda x: Input({'type': 'aperture-value-all:item', 'index': '0', 'val': x}, "n_clicks"), apertures)),
@@ -30,7 +29,7 @@ def update_aperture_value(*inputs):
 @app.callback(
     Output({'type': 'aperture', 'index': ALL}, "label"),
     list(map(lambda x: Input({'type': 'aperture:item', 'index': ALL, 'val': x}, "n_clicks"), apertures)) +
-        [Input('aperture-set-all', 'n_clicks')],
+    [Input('aperture-set-all', 'n_clicks')],
     State({'type': 'aperture', 'index': ALL}, "id"),
     State({'type': 'aperture', 'index': ALL}, "label"),
     State({'type': 'aperture-value-all', 'index': '0'}, 'label'),
@@ -125,15 +124,11 @@ def std_set_all_onclick(n1, n2, cbs):
 @dash.callback(
     output=[
         Output('table-container-culminations', 'children'),
-        Output('table-container-acquisition', 'children'),
-        Output('table-container-carriage', 'children'),
         Output('job-summary', 'children'),
         Output('run-csmake', 'disabled'),
         Output('load-csi', 'disabled'),
         Output('load-track', 'disabled'),
-        Output('obs-table', 'data'),
-        Output('feed-table', 'data'),
-        Output('carriage-table', 'data'),
+        Output('antenna-table', 'data'),
     ],
     inputs=[
         Input('stellar-name', 'value'),
@@ -160,9 +155,7 @@ def std_set_all_onclick(n1, n2, cbs):
         State('run-csmake', 'disabled'),
         State('load-csi', 'disabled'),
         State('load-track', 'disabled'),
-        State('obs-table', 'data'),
-        State('feed-table', 'data'),
-        State('carriage-table', 'data'),
+        State('antenna-table', 'data'),
     ],
     background=True,
     progress=[Output('modal-progress', 'is_open'), Output('update-progress', 'value'),
@@ -172,39 +165,30 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
                              end_time: str, use_solar_object: int, solar_object_name: str, solar_ref_time: str,
                              solar_lon: int, solar_lat: int,
                              aperture, retract, before, after, track, std,
-                             tcc, js, rc, lc, tfd,
-                             json_antenna, json_feed, json_carriage):
+                             old_antenna_table, old_job_summary, old_run_csmake_state, old_load_csi_state,
+                             old_load_track_state,
+                             json_data,
+                             ):
     set_progress((True, 100, 100))
 
     trigger = ctx.triggered_id
 
-    antenna_row_updates = ['aperture', 'retract', 'before', 'after', 'track', 'std']
-    acquisition_row_updates = ['resolution', 'attenuation', 'polarization', 'regstart', 'regstop']
-    carriage_row_updates = ['amplitude', 'speed1', 'speed2', 'accel1', 'accel2', 'decel1', 'decel2', 'dwell1', 'dwell2']
+    row_updates = ['aperture', 'retract', 'before', 'after', 'track', 'std']
 
-    row_updates = antenna_row_updates + acquisition_row_updates + carriage_row_updates
+    df = None
+    if json_data:
+        df = pd.read_json(json_data[1:-1], orient='split')
 
-    antenna_table = None
-    if json_antenna and hasattr(trigger, 'type') and trigger.type in row_updates:
-        antenna_table = pd.read_json(json_antenna[1:-1], orient='split')
-
-    try:
+    # Изменение состояния std приводит к пересчету кульминации, всё остальное не требует
+    # запуска ефрата по новой
+    if hasattr(trigger, 'type') and trigger.type in row_updates and df is not None:
         if trigger.type in ['aperture', 'retract', 'before', 'after', 'track']:
-            exec(f'antenna_table["{trigger.type}"] = {trigger.type}')
+            exec(f'df["{trigger.type}"] = {trigger.type}')
             set_progress((False, 100, 100))
-            return tcc, js, rc, lc, tfd, "'" + antenna_table.to_json(date_format='iso', orient='split') + "'"
+            return old_antenna_table, old_job_summary, old_run_csmake_state, old_load_csi_state, old_load_track_state, \
+                "'" + df.to_json(date_format='iso', orient='split') + "'"
         elif trigger.type == 'std':
-            antenna_table['std'] = std
-    except AttributeError:
-        pass
-
-    feed_table = None
-    if json_feed and hasattr(trigger, 'type') and trigger.type in row_updates:
-        feed_table = pd.read_json(json_feed[1:-1], orient='split')
-
-    carriage_table = None
-    if json_carriage and hasattr(trigger, 'type') and trigger.type in row_updates:
-        carriage_table = pd.read_json(json_carriage[1:-1], orient='split')
+            df['std'] = std
 
     try:
         azimuths_ = azimuths.replace(',', ' ').split()
@@ -216,7 +200,7 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
         date_utc = datetime.fromisoformat(begin_time).strftime('%Y%m%d')
         n = (end_datetime - begin_datetime).days + 2
 
-        if n > 10:
+        if n > MAX_DAYS:
             raise ValueError
 
         dont_use_config = True
@@ -225,21 +209,20 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
             # Убираем [] из названия объекта
             object_name_ = object_name[1:-1]
             s = get_efrat_job_object(object_name_, az, date_utc, str(n))
-
         else:
-            ra = ra.replace('h', '').replace('m', '').replace('s', '')
-            dec = dec.replace('d', '').replace('m', '').replace('s', '')
+            ra = ra.replace('h', '').replace('m', '').replace('s', '').replace(' ', '')
+            dec = dec.replace('d', '').replace('m', '').replace('s', '').replace(' ', '')
             s = get_efrat_job_stellar(object_name, ra, dec, az, date_utc, str(n))
 
         efrat_strings = run_efrat(s)
-        for e in efrat_strings:
-            print(e)
+        # for e in efrat_strings:
+        #     print(e)
 
         table_num = []
         for i, el in enumerate(efrat_strings[:-1]):
             standard = 0
             try:
-                standard = antenna_table['std'].iloc[i]
+                standard = df['std'].iloc[i]
             except (AttributeError, IndexError, TypeError):
                 pass
             table_row = fill_table_string_from_efrat(i, el, begin_datetime, end_datetime, standard, dont_use_config)
@@ -270,7 +253,7 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
                 efrat_strings = run_efrat(s)
                 standard = 0
                 try:
-                    standard = antenna_table['std'].iloc[i]
+                    standard = df['std'].iloc[i]
                 except (AttributeError, IndexError, TypeError):
                     pass
                 table_row = fill_table_string_from_efrat(i, efrat_strings[0], begin_datetime, end_datetime,
@@ -284,65 +267,26 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
         if not table_num:
             raise ValueError
 
-        antenna_table = pd.DataFrame(data=table_num,
-                                     columns=['idx', 'azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before',
-                                              'after', 'track', 'a_obj', 'h_obj', 'ra_degrees', 'dec_degrees',
-                                              'sid_time_degrees', 'refraction', 'nutation', 'pos_angle_obj',
-                                              'pos_angle_diag', 'vad', 'vhd', 'std'])
+        df = pd.DataFrame(data=table_num,
+                          columns=['idx', 'azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before',
+                                   'after', 'track', 'a_obj', 'h_obj', 'ra_degrees', 'dec_degrees',
+                                   'sid_time_degrees', 'refraction', 'nutation', 'pos_angle_obj',
+                                   'pos_angle_diag', 'vad', 'vhd', 'std'])
 
-        json_antenna_out = "'" + antenna_table.to_json(date_format='iso', orient='split') + "'"
-
-        if feed_table is not None:
-            feed_table['azimuth'] = antenna_table['azimuth']
-            feed_table['date_time'] = antenna_table['date_time']
-        else:
-            feed_table = antenna_table[['idx', 'azimuth', 'date_time']]
-            feed_table['resolution'] = ['3.9 МГц'] * feed_table.shape[0]
-            feed_table['attenuation'] = [DEFAULT_ATTENUATION] * feed_table.shape[0]
-            feed_table['polarization'] = ['Авто'] * feed_table.shape[0]
-            feed_table['regstart'] = antenna_table['before'] - 0.1
-            feed_table['regstop'] = antenna_table['after'] - 0.1
-            # feed_table['carriagepos'] = [DEFAULT_CARRIAGEPOS] * feed_table.shape[0]
-
-        json_feed_out = "'" + feed_table.to_json(date_format='iso', orient='split') + "'"
-
-        if carriage_table is not None:
-            carriage_table['azimuth'] = antenna_table['azimuth']
-            carriage_table['date_time'] = antenna_table['date_time']
-        else:
-            carriage_table = antenna_table[['idx', 'azimuth', 'date_time']]
-            # carriage_table['regstart'] = antenna_table['before'] - 0.1
-            # carriage_table['regstop'] = antenna_table['after'] - 0.1
-            carriage_table['carenabled'] = [DEFAULT_CARRIAGE_ENABLED] * feed_table.shape[0]
-            carriage_table['carriagepos'] = [DEFAULT_CARRIAGEPOS] * feed_table.shape[0]
-            carriage_table['oscenabled'] = [DEFAULT_CARRIAGE_OSCENABLED] * feed_table.shape[0]
-            carriage_table['amplitude'] = [DEFAULT_CARRIAGE_AMPLITUDE] * feed_table.shape[0]
-            carriage_table['speed1'] = [DEFAULT_CARRIAGE_SPEED] * feed_table.shape[0]
-            carriage_table['speed2'] = [DEFAULT_CARRIAGE_SPEED] * feed_table.shape[0]
-            carriage_table['accel1'] = [DEFAULT_CARRIAGE_ACCEL] * feed_table.shape[0]
-            carriage_table['accel2'] = [DEFAULT_CARRIAGE_ACCEL] * feed_table.shape[0]
-            carriage_table['decel1'] = [DEFAULT_CARRIAGE_DECEL] * feed_table.shape[0]
-            carriage_table['decel2'] = [DEFAULT_CARRIAGE_DECEL] * feed_table.shape[0]
-            carriage_table['dwell1'] = [DEFAULT_CARRIAGE_DWELL] * feed_table.shape[0]
-            carriage_table['dwell2'] = [DEFAULT_CARRIAGE_DWELL] * feed_table.shape[0]
-
-        json_carriage_out = "'" + carriage_table.to_json(date_format='iso', orient='split') + "'"
+        json_out = "'" + df.to_json(date_format='iso', orient='split') + "'"
 
         is_sun = (object_name == '[Sun]')
-        antenna_html_table = make_antenna_html_table(antenna_table, DEFAULT_BEFORE, DEFAULT_AFTER, is_sun,
-                                                     use_solar_object)
-        feed_html_table = make_acquisition_html_table(feed_table, DEFAULT_ATTENUATION, DEFAULT_REGSTART,
-                                                      DEFAULT_REGSTOP)
-        carriage_html_table = make_carriage_html_table(carriage_table)
+
+        html_table = make_antenna_html_table(df, is_sun, use_solar_object)
 
         object_label = make_object_label(object_name, use_solar_object, solar_object_name)
-        return antenna_html_table, feed_html_table, carriage_html_table, \
+        return html_table, \
             f'#### {object_label}: {begin_datetime.strftime("%Y-%m-%d %H:%M:%S")} — ' \
             f'{end_datetime.strftime("%Y-%m-%d %H:%M:%S")}', \
-            False, False, False, json_antenna_out, json_feed_out, json_carriage_out
+            False, False, False, json_out
 
     except (TypeError, ValueError, AttributeError) as ex:
         print('recalculate_culminations exception:', ex)
-        return None, None, None, '#### &nbsp;', True, True, True, None, None, None
+        return None, '#### &nbsp;', True, True, True, None
     finally:
         set_progress((False, 100, 100))

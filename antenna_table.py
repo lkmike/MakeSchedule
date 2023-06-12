@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import html
 
-from utils import head_style, head_input_style, make_dropdown, make_checkbox, deg_to_dms
+from utils import DEFAULT_BEFORE, DEFAULT_AFTER, head_style, head_input_style, make_dropdown, make_checkbox, deg_to_dms
 
 apertures = ['167', '61', '51', '41']
 
@@ -156,7 +156,7 @@ def azimuth_column(pd_table):
     return pd_table['azimuth']
 
 
-def make_antenna_html_table(pd_table, before, after, is_sun, use_solar_object):
+def make_antenna_html_table(pd_table, is_sun, use_solar_object):
     table_out_df = pd.DataFrame({
         azimuth_head(): azimuth_column(pd_table),
         date_head(): date_column(pd_table),
@@ -164,8 +164,8 @@ def make_antenna_html_table(pd_table, before, after, is_sun, use_solar_object):
         height_head(): height_column(pd_table),
         aperture_head(): aperture_column(pd_table),
         retract_head(): retract_column(pd_table),
-        before_head(before): before_column(pd_table),
-        after_head(after): after_column(pd_table),
+        before_head(DEFAULT_BEFORE): before_column(pd_table),
+        after_head(DEFAULT_AFTER): after_column(pd_table),
         motion_head(): motion_column(pd_table),
     })
     if is_sun and use_solar_object:

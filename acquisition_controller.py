@@ -1,9 +1,12 @@
+import pandas as pd
+
 from app import app
 from dash import dcc, ctx, ALL
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
-from acquisition_table import resolutions, polarizations
+from acquisition_table import resolutions, polarizations, DEFAULT_ACQUISITION_RESOLUTION, \
+    DEFAULT_ACQUISITION_POLARIZATION, DEFAULT_ACQUISITION_ATTENUATION, make_acquisition_html_table
 
 
 @app.callback(
@@ -62,7 +65,7 @@ def update_polarization_value(*inputs):
 @app.callback(
     Output({'type': 'polarization', 'index': ALL}, "label"),
     list(map(lambda x: Input({'type': 'polarization:item', 'index': ALL, 'val': x}, "n_clicks"), polarizations)) +
-        [Input('polarization-set-all', 'n_clicks')],
+    [Input('polarization-set-all', 'n_clicks')],
     State({'type': 'polarization', 'index': ALL}, "id"),
     State({'type': 'polarization', 'index': ALL}, "label"),
     State({'type': 'polarization-value-all', 'index': '0'}, 'label'),
@@ -122,5 +125,57 @@ def regstop_set_all_onclick(n1, v, cbs):
         raise PreventUpdate
 
 
+@app.callback(
+    output=[
+        Output('table-container-acquisition', 'children'),
+        Output('acquisition-table', 'data'),
+    ],
+    inputs=[
+        Input({'type': 'resolution', 'index': ALL}, "label"),
+        Input({'type': 'attenuation', 'index': ALL}, "label"),
+        Input({'type': 'polarization', 'index': ALL}, "label"),
+        Input({'type': 'regstart', 'index': ALL}, "label"),
+        Input({'type': 'regstop', 'index': ALL}, "label"),
+        Input('antenna-table', 'data')
+    ],
+    state=[
+        State('table-container-acquisition', 'children'),
+        State('acquisition-table', 'data'),
+    ],
+    prevent_initial_call=True
+)
+def update_acquisition_table(resolution, attenuation, polarization, regstart, regstop, json_antenna, existing_table,
+                             json_data):
+    trigger = ctx.triggered_id
+    row_updates = ['resolution', 'attenuation', 'polarization', 'regstart', 'regstop']
 
+    df = None
+    if json_data:
+        df = pd.read_json(json_data[1:-1], orient='split')
 
+    # Если источник обновления - элемент самой таблицы, сохраняем соответствующий столбец
+    # в модель и возвращаем таблицу в том виде, как она есть
+    if hasattr(trigger, 'type') and trigger.type in row_updates and df is not None:
+        exec(f'df["{trigger.type}"] = {trigger.type}')
+        return existing_table, "'" + df.to_json(date_format='iso', orient='split') + "'"
+
+    # Другой вариант - обновление столбцов азимута и даты при пересчете таблицы кульминаций
+    if trigger == 'antenna-table' and json_antenna is not None:
+        at = pd.read_json(json_antenna[1:-1], orient='split')
+        if df is not None:
+            df['azimuth'] = at['azimuth']
+            df['date_time'] = at['date_time']
+        else:
+            df = at[['idx', 'azimuth', 'date_time']].copy()
+            df['resolution'] = [DEFAULT_ACQUISITION_RESOLUTION] * df.shape[0]
+            df['attenuation'] = [DEFAULT_ACQUISITION_ATTENUATION] * df.shape[0]
+            df['polarization'] = [DEFAULT_ACQUISITION_POLARIZATION] * df.shape[0]
+            df['regstart'] = at['before'] - 0.1
+            df['regstop'] = at['after'] - 0.1
+
+        json_out = "'" + df.to_json(date_format='iso', orient='split') + "'"
+        html_table = make_acquisition_html_table(df)
+
+        return html_table, json_out
+
+    return None, None
