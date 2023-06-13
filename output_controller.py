@@ -3,8 +3,8 @@ import numpy as np
 
 from acquisition_table import resolution_to_avgpts, polarization_to_pol, polarization_to_auto
 from app import app
-from dash import dcc, ctx, ALL, html
-from dash.dependencies import Input, Output, State, ALL
+from dash import dcc, ctx, html
+from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 import os
@@ -21,7 +21,7 @@ import tempfile
 from utils import make_object_label, get_csmakes_result, run_csmakes, calculate_rpm, generate_motion_entry, \
     generate_operator_entry, generate_skip_observer_entry, generate_observer_transit_entry, \
     generate_observer_entry_body, generate_observer_entry_head, feed_offset_to_time, write_at_job, \
-    write_operator_schedule, write_observer_schedule, write_stop, write_at_rmall
+    write_operator_schedule, write_observer_schedule, write_stop, write_at_rmall, TIMEZONE
 
 DRIVE_TO_CM_SCALE = 1 / 8424 * 3
 
@@ -109,9 +109,9 @@ def load_csi_onclick(n, job_name, object_name, use_solar_object, solar_object_na
 def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, correction: float,
                        object_name: str, job_name: str, use_solar_object, solar_object_name, json_antenna,
                        json_acquisition, json_carriage):
-    antenna_table = pd.read_json(json_antenna[1:-1], orient='split')
-    acquisition_table = pd.read_json(json_acquisition[1:-1], orient='split')
-    carriage_table = pd.read_json(json_carriage[1:-1], orient='split')
+    ant_table = pd.read_json(json_antenna[1:-1], orient='split')
+    acq_table = pd.read_json(json_acquisition[1:-1], orient='split')
+    car_table = pd.read_json(json_carriage[1:-1], orient='split')
 
     object_label = make_object_label(object_name, use_solar_object, solar_object_name)
 
@@ -122,54 +122,60 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
 
     first_item = True
     json_jobs = []
+
+    common_table = pd.concat(
+        [ant_table, acq_table.loc[:, ((acq_table.columns != 'azimuth') & (acq_table.columns != 'date_time'))],
+         car_table.loc[:, ((car_table.columns != 'azimuth') & (car_table.columns != 'date_time'))]], axis=1)
+
     for (_, azimuth, date_time, h_per, aperture, retract, before, after, track, a_obj, h_obj, vad, vhd, dec_degrees,
-         p_diag, ra_degrees, sid_time_degrees), \
-            (_, resolution, attenuation, polarization, regstart, regstop), \
-            (_, carenabled, carriagepos, oscenabled, amplitude, speed1, accel1, decel1, dwell1, speed2, accel2, decel2,
-             dwell2) \
-            in antenna_table[['azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before', 'after', 'track',
-                              'a_obj', 'h_obj', 'vad', 'vhd', 'dec_degrees', 'pos_angle_diag', 'ra_degrees',
-                              'sid_time_degrees']].itertuples(), \
-            acquisition_table.itertuples(), carriage_table.itertuples():
+         p_diag, ra_degrees, sid_time_degrees, resolution, attenuation, polarization, regstart, regstop, carenabled,
+         carriagepos, oscenabled, amplitude, speed1, accel1, decel1, dwell1, speed2, accel2, decel2, dwell2) \
+            in common_table[['azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before', 'after', 'track',
+                             'a_obj', 'h_obj', 'vad', 'vhd', 'dec_degrees', 'pos_angle_diag', 'ra_degrees',
+                             'sid_time_degrees', 'resolution', 'attenuation', 'polarization', 'regstart', 'regstop',
+                             'carenabled', 'carriagepos', 'oscenabled', 'amplitude', 'speed1', 'accel1', 'decel1',
+                             'dwell1', 'speed2', 'accel2', 'decel2', 'dwell2']].itertuples():
 
         s_per_degree, rpm = calculate_rpm(a_obj=a_obj, h_obj=h_obj, dec_degrees=dec_degrees,
                                           seconds_per_degree300=s_per_degree_at_300, ra_degrees=ra_degrees,
                                           sid_time_degrees=sid_time_degrees)
 
-        culmination: datetime = date_time
-        culm_plus_two: datetime = culmination - 2 * s_per_degree
-        culm_plus_one: datetime = culmination - s_per_degree
-        culm_minus_one: datetime = culmination + s_per_degree
+        culmination = date_time
+        culm_p2 = culmination - 2 * s_per_degree
+        culmination_p1 = culmination - s_per_degree
+        culmimnation_m1 = culmination + s_per_degree
 
         az_p2 = f'{int(float(azimuth) + 2):+03}'
-        az_p1 = f'{int(float(azimuth) + 1):+03}'
-        az_m1 = f'{int(float(azimuth) - 1):+03}'
+        azimuth_p1 = f'{int(float(azimuth) + 1):+03}'
+        azimuth_m1 = f'{int(float(azimuth) - 1):+03}'
 
         if not track:
-            obs_start: datetime = culmination + timedelta(minutes=-4)
-            rolling_start: datetime = culmination + timedelta(minutes=4) + timedelta(seconds=3)
+            obs_start = culmination + timedelta(minutes=-4)
+            rolling_start = culmination + timedelta(minutes=4) + timedelta(seconds=3)
             at_motion_entry = ''
             operator_entry = generate_operator_entry(azimuth, start_time=obs_start, rolling_start=rolling_start)
             observer_entry = generate_observer_transit_entry(azimuth, culmination, obs_start, rolling_start)
 
         else:
-            rolling_start: datetime = culmination + timedelta(minutes=after) + timedelta(seconds=5)
+            rolling_start = culmination + timedelta(minutes=after) + timedelta(seconds=5)
 
             if start_position == '1':
-                at_motion_entry, json_motion_entry = generate_motion_entry(azimuth, start_time=culm_plus_one,
-                                                                           stop_time=culm_minus_one,
+                at_motion_entry, json_motion_entry = generate_motion_entry(azimuth, start_time=culmination_p1,
+                                                                           stop_time=culmimnation_m1,
                                                                            speed=rpm, culmination=culmination)
-                operator_entry = generate_operator_entry(az_p1, culm_plus_one, rolling_start)
-                observer_entry = generate_skip_observer_entry(az_p2, culm_plus_two)
+                operator_entry = generate_operator_entry(azimuth_p1, culmination_p1, rolling_start)
+                observer_entry = generate_skip_observer_entry(az_p2, culm_p2)
             elif start_position == '2':
-                at_motion_entry, json_motion_entry = generate_motion_entry(azimuth, start_time=culm_plus_two,
-                                                                           stop_time=culm_minus_one,
+                at_motion_entry, json_motion_entry = generate_motion_entry(azimuth, start_time=culm_p2,
+                                                                           stop_time=culmimnation_m1,
                                                                            speed=rpm, culmination=culmination)
-                operator_entry = generate_operator_entry(az_p2, culm_plus_two, rolling_start)
-                observer_entry = generate_observer_entry_head(az_p2, culm_plus_two)
+                operator_entry = generate_operator_entry(az_p2, culm_p2, rolling_start)
+                observer_entry = generate_observer_entry_head(az_p2, culm_p2)
             else:
                 raise ValueError
 
+            observer_entry += generate_observer_entry_body(after, azimuth_m1, azimuth_p1, azimuth,
+                                                           culmimnation_m1, culmination_p1, culmination, rpm)
             json_dict = {
                 'comment': f'azimuth {azimuth}, culmination {culmination}',
                 'setup': True,
@@ -181,21 +187,27 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
             if carenabled:
                 feed_offset_drive = FAST_FEED_POSITION - carriagepos
             else:
-                feed_offset_drive = np.nan
+                feed_offset_drive = 0
             feed_offset = DRIVE_TO_CM_SCALE * feed_offset_drive
             feed_offset_time = feed_offset_to_time(feed_offset, dec_degrees)
+            local_culmination = culmination + feed_offset_time
+            pulse1_rlc_begin = -regstart * 60
+            pulse2_rlc_begin = regstop * 60
 
-            carriage_motion = {}
+            carriage_motion = make_carriage_motion_entry(local_culmination, pulse1_rlc_begin, pulse2_rlc_begin,
+                                                         carriagepos, oscenabled, amplitude,
+                                                         speed1, accel1, decel1, dwell1,
+                                                         speed2, accel2, decel2, dwell2)
 
             json_dict = {
                 'azimuth': azimuth,
                 'object': object_label,
-                'culmination': culmination,
+                'culmination': culmination.tz_localize(TIMEZONE).isoformat(),
                 'feed_offset': feed_offset,
-                'feed_offset_time': feed_offset_time,
+                'feed_offset_time': feed_offset_time.total_seconds(),
                 'record_duration_rlc': [-before * 60, after * 60],
-                'pulse1_rlc': [-regstart * 60, -regstart * 60 + 5],
-                'pulse2_rlc': [regstop, regstop + 5],
+                'pulse1_rlc': [pulse1_rlc_begin, pulse1_rlc_begin + 5],
+                'pulse2_rlc': [pulse2_rlc_begin, pulse2_rlc_begin + 5],
                 'dec': dec_degrees,
                 'ra': ra_degrees,
                 'fits_words': {},
@@ -213,9 +225,6 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
             }
             json_jobs.append(json_dict)
 
-            observer_entry += generate_observer_entry_body(after, az_m1, az_p1, azimuth, culm_minus_one, culm_plus_one,
-                                                           culmination, rpm)
-
         at_job += at_motion_entry
         operator_schedule += operator_entry
         observer_schedule += observer_entry
@@ -223,11 +232,11 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
     with tempfile.TemporaryDirectory() as dir_name:
         with open(f'{dir_name}/modifications.json', 'w') as f:
             json.dump(json_jobs, f, indent=2)
-        write_at_job(at_job, object_label, antenna_table, dir_name)
+        write_at_job(at_job, object_label, ant_table, dir_name)
         write_at_rmall(dir_name)
         write_stop(dir_name)
-        write_operator_schedule(operator_schedule, object_label, antenna_table, dir_name)
-        write_observer_schedule(observer_schedule, object_label, antenna_table, dir_name)
+        write_operator_schedule(operator_schedule, object_label, ant_table, dir_name)
+        write_observer_schedule(observer_schedule, object_label, ant_table, dir_name)
 
         arch_name = f'{job_name}_track'
         zip_name = f'{dir_name}/{arch_name}.zip'
@@ -238,3 +247,74 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
                 zip_obj.write(file_path, f'{arch_name}/{basename(file_path)}')
 
         return dcc.send_file(zip_name)
+
+
+def make_carriage_motion_entry(local_culmination, pulse1_rlc, pulse2_rlc, position, oscenabled, amplitude,
+                               speed1, accel1, decel1, dw1, speed2, accel2, decel2, dw2):
+    pa = position - amplitude / 2
+    pb = position + amplitude / 2
+
+    v1 = speed1 / 60 * 360
+    v2 = speed2 / 60 * 360
+    a1 = accel1 / 2 / np.pi * 360
+    a2 = accel2 / 2 / np.pi * 360
+    d1 = decel1 / 2 / np.pi * 360
+    d2 = decel2 / 2 / np.pi * 360
+
+    period = timedelta(seconds=v1 / 2 * (1 / a1 + 1 / d1) + v2 / 2 * (1 / a2 + 1 / d2) + amplitude * (1 / v1 + 1 / v2)
+                               + dw1 + dw2)
+
+    print(period)
+
+    t0_rlc = -timedelta(seconds=amplitude / 2 / v1 + v1 / 2 / a1)
+
+    print(t0_rlc)
+
+    n_periods_before_culmination = abs((timedelta(seconds=pulse1_rlc + 5) - t0_rlc) // period)
+
+    print(n_periods_before_culmination)
+
+    n_periods_after_culminations = abs((timedelta(seconds=pulse2_rlc - 5) - t0_rlc) // period)
+
+    print(n_periods_after_culminations)
+
+    n_periods = n_periods_before_culmination + n_periods_after_culminations
+
+    print(n_periods)
+
+    start_time1 = local_culmination - (n_periods_before_culmination * period + t0_rlc)
+    start_time2 = start_time1 + timedelta(seconds=amplitude / v1 + v1 / 2 * (1 / a1 + 1 / d1) + dw1)
+    pre_start_time = start_time1 - timedelta(minutes=1)
+
+    items = [{
+        'time': pre_start_time.tz_localize(TIMEZONE).isoformat(),
+        'position': pa,
+        'speed': 800,
+        'acceleration': 100,
+        'deceleration': 100
+    }]
+
+    if oscenabled:
+        print('oscillate')
+        for i in range(n_periods):
+            items.append({
+                'time': (start_time1 + i * period).tz_localize(TIMEZONE).isoformat(),
+                'position': pb,
+                'speed': speed1,
+                'acceleration': accel1,
+                'deceleration': decel1
+            })
+            items.append({
+                'time': (start_time2 + i * period).tz_localize(TIMEZONE).isoformat(),
+                'position': pa,
+                'speed': speed2,
+                'acceleration': accel2,
+                'deceleration': decel2
+            })
+
+    result = {
+        'start_position': position,
+        'profile': items
+    }
+
+    return result

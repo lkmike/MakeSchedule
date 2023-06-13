@@ -7,7 +7,8 @@ from utils import DEFAULT_BEFORE, DEFAULT_AFTER
 from utils import head_style, head_input_style, make_dropdown
 
 resolutions = ['7.8 МГц', '3.9 МГц', '1.95 МГц', '976 кГц', '488 кГц', '244 кГц', '122 кГц']
-resolution_to_avgpts = dict(zip(resolutions, 2 ** np.arange(len(resolutions) - 1, -1, -1)))
+avg_points = [64, 32, 16, 8, 4, 2, 1]
+resolution_to_avgpts = dict(zip(resolutions, avg_points))
 
 polarizations = ['Левая', 'Правая', 'Авто']
 
