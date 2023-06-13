@@ -1,6 +1,5 @@
 import math
 from datetime import date, datetime, timedelta
-from pytz import timezone
 import copy
 
 import astropy as astropy
@@ -19,27 +18,8 @@ from sunpy import coordinates
 from astropy.coordinates import SkyCoord
 import astropy.time
 
-from app import app
-
-DEFAULT_BEFORE = 6.1
-DEFAULT_AFTER = 6.6
-DEFAULT_APERTURE = '61'
-DEFAULT_RETRACT = False
-DEFAULT_TRACK = True
-
-MAX_DAYS = 10
-
-TIMEZONE = timezone('Europe/Moscow')
-
-PLANETS = ['[Sun]', '[Moon]', '[Mercury]', '[Venus]', '[Earth]', '[Mars]', '[Jupiter]', '[Saturn]',
-           '[Uranus]', '[Neptune]', '[Pluto]']
-
-stellar_presets = {
-    'stellar-source-crab': {'ra': '05h34m32s', 'dec': '22d00m52.0s', 'name': 'Crab'},
-    'stellar-source-cyga': {'ra': '19h57m44.5s', 'dec': '40d35m46.0s', 'name': 'CygA'},
-    'stellar-source-3c84': {'ra': '03h19m48.16s', 'dec': '41d30m42.2s', 'name': '3c84'},
-    'stellar-source-3c273': {'ra': '12h29m06.6s', 'dec': '02d03m08.6s', 'name': '3c273'}
-}
+from defaults import DEFAULT_DURATION_BEFORE, DEFAULT_DURATION_AFTER, DEFAULT_APERTURE, DEFAULT_RETRACT, \
+    DEFAULT_TRACK, PLANETS
 
 
 def get_efrat_job_stellar(source_name, ra, dec, azimuths, date_utc, n_days):
@@ -178,12 +158,12 @@ def main_csi_entry_template_use_script(source: str, az: str, culmination: dateti
         51: '44:00:00',
         41: '36:00:00'
     }
-    return f"{f'{source}{az}':15}" + \
-        f"{culmination.strftime('%H:%M:%S.%f')[:-4]:15}" + \
-        f"{f'{az}:00:00.0':15}" + \
-        f"{f'-{before.seconds / 60:4.2f}/{after.seconds / 60:4.2f}':15}" + \
-        f"{aperture_lookup[aperture]}" + \
-        '\n'
+    return f'{f"{source}{az}":15}' \
+           f'{culmination.strftime("%H:%M:%S.%f")[:-4]:15}' \
+           f'{f"{az}:00:00.0":15}' \
+           f'{f"-{before.seconds / 60:4.2f}/{after.seconds / 60:4.2f}":15}' \
+           f'{aperture_lookup[aperture]}' \
+           '\n'
 
 
 def write_main_csi(file_name: str, object_name: str, table: pd.DataFrame):
@@ -494,13 +474,13 @@ def fill_table_string_from_efrat(index, efrat_string, begin_datetime, end_dateti
     vh = float(a[24])
     if begin_datetime <= datetime_local_out <= end_datetime:
         idx = str(index)
-        return [idx, az_out_str, datetime_local_out, h_per, DEFAULT_APERTURE, DEFAULT_RETRACT, DEFAULT_BEFORE,
-                DEFAULT_AFTER, DEFAULT_TRACK, a_obj, h_obj, ra_degrees, dec_degrees, sid_time_degrees, refr, nut_ra,
+        return [idx, az_out_str, datetime_local_out, h_per, DEFAULT_APERTURE, DEFAULT_RETRACT, DEFAULT_DURATION_BEFORE,
+                DEFAULT_DURATION_AFTER, DEFAULT_TRACK, a_obj, h_obj, ra_degrees, dec_degrees, sid_time_degrees, refr,
+                nut_ra,
                 p_obj, p_diag, va, vh, std]
 
 
-def get_rolled_point_ra_dec(ref_point, ref_time: astropy.time.Time,
-                            obs_time: astropy.time.Time) -> tuple:
+def get_rolled_point_ra_dec(ref_point, ref_time: astropy.time.Time, obs_time: astropy.time.Time) -> tuple:
     r_point = SkyCoord(ref_point[0] * u.arcsec, ref_point[1] * u.arcsec,
                        frame=coordinates.frames.Helioprojective, observer='earth', obstime=ref_time)
     rolled_point = astropy.coordinates.SkyCoord(
@@ -604,7 +584,7 @@ def feed_offset_to_time(fo, delta):
 
 
 def update_from_updated_antenna_table(data_frame, antenna_frame, make_default_parameter_set):
-    '''
+    """
     Для каждой записи в antenna_frame проверяет, есть ли в data_frame запись с теми же азимутом и датой. Если нет,
     создает такую запись с параметрами по умолчанию. Потом для каждой записи в data_frame проверяет, есть ли
     соответствующая запись в antenna_frame, и если нет, то удаляет запись из data_frame.
@@ -614,7 +594,7 @@ def update_from_updated_antenna_table(data_frame, antenna_frame, make_default_pa
         передается antenna_frame, так что можно устанавливать параметры в зависимости от того, что содержится
         в расписании
     :return: измененный data_frame
-    '''
+    """
     for index, at_row in antenna_frame.iterrows():
         _az, _date_time = at_row['azimuth'], at_row['date_time']
         df_same_row = data_frame.loc[((data_frame['azimuth'] == _az) &
@@ -626,6 +606,7 @@ def update_from_updated_antenna_table(data_frame, antenna_frame, make_default_pa
             data_frame = pd.concat([data_frame, df_row], ignore_index=True)
     data_frame.sort_values(['date_time', 'azimuth'], inplace=True)
     data_frame.reset_index(inplace=True, drop=True)
+
     for index, df_row in data_frame.iterrows():
         _az, _date_time = df_row['azimuth'], df_row['date_time']
         if not ((antenna_frame['azimuth'] == _az)

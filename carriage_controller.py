@@ -5,9 +5,12 @@ from dash import ctx
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
-from carriage_table import DEFAULT_CARRIAGE_ENABLED, DEFAULT_CARRIAGE_POS, DEFAULT_CARRIAGE_OSCENABLED, \
-    DEFAULT_CARRIAGE_AMPLITUDE, DEFAULT_CARRIAGE_SPEED, DEFAULT_CARRIAGE_ACCEL, DEFAULT_CARRIAGE_DECEL, \
-    DEFAULT_CARRIAGE_DWELL, make_carriage_html_table
+from carriage_table import make_carriage_html_table
+from defaults import DEFAULT_CARRIAGE_POS, DEFAULT_CARRIAGE_ENABLED, DEFAULT_CARRIAGE_OSCENABLED, \
+    DEFAULT_CARRIAGE_AMPLITUDE, DEFAULT_CARRIAGE_SPEED1, DEFAULT_CARRIAGE_ACCEL1, DEFAULT_CARRIAGE_DECEL1, \
+    DEFAULT_CARRIAGE_DWELL1, DEFAULT_CARRIAGE_SPEED2, DEFAULT_CARRIAGE_ACCEL2, DEFAULT_CARRIAGE_DECEL2, \
+    DEFAULT_CARRIAGE_DWELL2
+
 from utils import update_from_updated_antenna_table
 
 
@@ -161,9 +164,11 @@ def update_carriage_table(carenabled, carriagepos, oscenabled, amplitude, carmov
         if trigger.type in simple_row_updates:
             exec(f'df["{trigger.type}"] = {trigger.type}')
         elif trigger.type == 'carmove1':
-            df.loc[int(trigger.index), ['speed1', 'accel1', 'decel1', 'dwell1']] = carmove1[int(trigger.index)].split('/')
+            df.loc[int(trigger.index), ['speed1', 'accel1', 'decel1', 'dwell1']] = carmove1[int(trigger.index)].split(
+                '/')
         elif trigger.type == 'carmove2':
-            df.loc[int(trigger.index), ['speed2', 'accel2', 'decel2', 'dwell2']] = carmove2[int(trigger.index)].split('/')
+            df.loc[int(trigger.index), ['speed2', 'accel2', 'decel2', 'dwell2']] = carmove2[int(trigger.index)].split(
+                '/')
         return existing_table, "'" + df.to_json(date_format='iso', orient='split') + "'"
 
     if trigger == 'antenna-table' and json_antenna is not None:
@@ -172,10 +177,10 @@ def update_carriage_table(carenabled, carriagepos, oscenabled, amplitude, carmov
             df = update_from_updated_antenna_table(df, at, lambda x: [DEFAULT_CARRIAGE_ENABLED, DEFAULT_CARRIAGE_POS,
                                                                       DEFAULT_CARRIAGE_OSCENABLED,
                                                                       DEFAULT_CARRIAGE_AMPLITUDE,
-                                                                      DEFAULT_CARRIAGE_SPEED, DEFAULT_CARRIAGE_ACCEL,
-                                                                      DEFAULT_CARRIAGE_DECEL, DEFAULT_CARRIAGE_DWELL,
-                                                                      DEFAULT_CARRIAGE_SPEED, DEFAULT_CARRIAGE_ACCEL,
-                                                                      DEFAULT_CARRIAGE_DECEL, DEFAULT_CARRIAGE_DWELL])
+                                                                      DEFAULT_CARRIAGE_SPEED1, DEFAULT_CARRIAGE_ACCEL1,
+                                                                      DEFAULT_CARRIAGE_DECEL1, DEFAULT_CARRIAGE_DWELL1,
+                                                                      DEFAULT_CARRIAGE_SPEED2, DEFAULT_CARRIAGE_ACCEL2,
+                                                                      DEFAULT_CARRIAGE_DECEL2, DEFAULT_CARRIAGE_DWELL2])
 
         else:
             df = at[['idx', 'azimuth', 'date_time']].copy()
@@ -183,14 +188,14 @@ def update_carriage_table(carenabled, carriagepos, oscenabled, amplitude, carmov
             df['carriagepos'] = [DEFAULT_CARRIAGE_POS] * df.shape[0]
             df['oscenabled'] = [DEFAULT_CARRIAGE_OSCENABLED] * df.shape[0]
             df['amplitude'] = [DEFAULT_CARRIAGE_AMPLITUDE] * df.shape[0]
-            df['speed1'] = [DEFAULT_CARRIAGE_SPEED] * df.shape[0]
-            df['accel1'] = [DEFAULT_CARRIAGE_ACCEL] * df.shape[0]
-            df['decel1'] = [DEFAULT_CARRIAGE_DECEL] * df.shape[0]
-            df['dwell1'] = [DEFAULT_CARRIAGE_DWELL] * df.shape[0]
-            df['speed2'] = [DEFAULT_CARRIAGE_SPEED] * df.shape[0]
-            df['accel2'] = [DEFAULT_CARRIAGE_ACCEL] * df.shape[0]
-            df['decel2'] = [DEFAULT_CARRIAGE_DECEL] * df.shape[0]
-            df['dwell2'] = [DEFAULT_CARRIAGE_DWELL] * df.shape[0]
+            df['speed1'] = [DEFAULT_CARRIAGE_SPEED1] * df.shape[0]
+            df['accel1'] = [DEFAULT_CARRIAGE_ACCEL1] * df.shape[0]
+            df['decel1'] = [DEFAULT_CARRIAGE_DECEL1] * df.shape[0]
+            df['dwell1'] = [DEFAULT_CARRIAGE_DWELL1] * df.shape[0]
+            df['speed2'] = [DEFAULT_CARRIAGE_SPEED2] * df.shape[0]
+            df['accel2'] = [DEFAULT_CARRIAGE_ACCEL2] * df.shape[0]
+            df['decel2'] = [DEFAULT_CARRIAGE_DECEL2] * df.shape[0]
+            df['dwell2'] = [DEFAULT_CARRIAGE_DWELL2] * df.shape[0]
 
         json_out = "'" + df.to_json(date_format='iso', orient='split') + "'"
         html_table = make_carriage_html_table(df)

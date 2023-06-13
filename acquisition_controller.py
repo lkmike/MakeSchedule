@@ -7,21 +7,21 @@ from dash import ctx
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
-from acquisition_table import resolutions, polarizations, DEFAULT_ACQUISITION_RESOLUTION, \
-    DEFAULT_ACQUISITION_POLARIZATION, DEFAULT_ACQUISITION_ATTENUATION, DEFAULT_REGSTART, DEFAULT_REGSTOP, \
-    make_acquisition_html_table
+from acquisition_table import make_acquisition_html_table
+from defaults import DEFAULT_ACQUISITION_RESOLUTION, DEFAULT_ACQUISITION_POLARIZATION, DEFAULT_ACQUISITION_ATTENUATION, \
+    DEFAULT_REGSTART, DEFAULT_REGSTOP, RESOLUTIONS, POLARIZATIONS
 from utils import update_from_updated_antenna_table
 
 
 @app.callback(
     Output({'type': 'resolution-value-all', 'index': '0'}, "label"),
-    list(map(lambda x: Input({'type': 'resolution-value-all:item', 'index': '0', 'val': x}, "n_clicks"), resolutions)),
+    list(map(lambda x: Input({'type': 'resolution-value-all:item', 'index': '0', 'val': x}, "n_clicks"), RESOLUTIONS)),
 )
 def update_resolution_value(*inputs):
     trigger_id = ctx.triggered_id
     if not trigger_id:
         raise PreventUpdate
-    if trigger_id.val in resolutions:
+    if trigger_id.val in RESOLUTIONS:
         return trigger_id.val
     else:
         raise PreventUpdate
@@ -29,7 +29,7 @@ def update_resolution_value(*inputs):
 
 @app.callback(
     Output({'type': 'resolution', 'index': ALL}, "label"),
-    list(map(lambda x: Input({'type': 'resolution:item', 'index': ALL, 'val': x}, "n_clicks"), resolutions)) +
+    list(map(lambda x: Input({'type': 'resolution:item', 'index': ALL, 'val': x}, "n_clicks"), RESOLUTIONS)) +
     [Input('resolution-set-all', 'n_clicks')],
     State({'type': 'resolution', 'index': ALL}, "id"),
     State({'type': 'resolution', 'index': ALL}, "label"),
@@ -42,7 +42,7 @@ def resolution_value_set_all_onclick(*inputs):
         raise PreventUpdate
     if trigger == 'resolution-set-all':
         return [v] * len(labels)
-    elif trigger.val in resolutions:
+    elif trigger.val in RESOLUTIONS:
         id_indices = [e['index'] for e in ids]
         labels_dict = dict(zip(id_indices, labels))
         labels_dict[trigger.index] = trigger.val
@@ -54,13 +54,13 @@ def resolution_value_set_all_onclick(*inputs):
 @app.callback(
     Output({'type': 'polarization-value-all', 'index': '0'}, "label"),
     list(map(lambda x: Input({'type': 'polarization-value-all:item', 'index': '0', 'val': x}, "n_clicks"),
-             polarizations)),
+             POLARIZATIONS)),
 )
 def update_polarization_value(*inputs):
     trigger_id = ctx.triggered_id
     if not trigger_id:
         raise PreventUpdate
-    if trigger_id.val in polarizations:
+    if trigger_id.val in POLARIZATIONS:
         return trigger_id.val
     else:
         raise PreventUpdate
@@ -68,7 +68,7 @@ def update_polarization_value(*inputs):
 
 @app.callback(
     Output({'type': 'polarization', 'index': ALL}, "label"),
-    list(map(lambda x: Input({'type': 'polarization:item', 'index': ALL, 'val': x}, "n_clicks"), polarizations)) +
+    list(map(lambda x: Input({'type': 'polarization:item', 'index': ALL, 'val': x}, "n_clicks"), POLARIZATIONS)) +
     [Input('polarization-set-all', 'n_clicks')],
     State({'type': 'polarization', 'index': ALL}, "id"),
     State({'type': 'polarization', 'index': ALL}, "label"),
@@ -81,7 +81,7 @@ def polarization_value_set_all_onclick(*inputs):
         raise PreventUpdate
     if trigger == 'polarization-set-all':
         return [v] * len(labels)
-    elif trigger.val in polarizations:
+    elif trigger.val in POLARIZATIONS:
         id_indices = [e['index'] for e in ids]
         labels_dict = dict(zip(id_indices, labels))
         labels_dict[trigger.index] = trigger.val

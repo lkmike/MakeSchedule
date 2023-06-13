@@ -2,13 +2,15 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import html
 
-from utils import DEFAULT_BEFORE, DEFAULT_AFTER, head_style, head_input_style, make_dropdown, make_checkbox, deg_to_dms
+from utils import head_style, head_input_style, make_dropdown, make_checkbox, deg_to_dms
 
-apertures = ['167', '61', '51', '41']
+from defaults import DEFAULT_DURATION_BEFORE, DEFAULT_DURATION_AFTER
+
+APERTURES = ['167', '61', '51', '41']
 
 
 def make_aperture_dropdown(identifier, label, marginleft='0px'):
-    return make_dropdown(identifier, label, items=apertures,
+    return make_dropdown(identifier, label, items=APERTURES,
                          marginleft=marginleft, width='6em')
 
 
@@ -112,7 +114,7 @@ def aperture_head():
         html.Div('Апертура', style=head_style, className='me-2 align-bottom', id='tt-aperture'),
         dbc.Tooltip('Размер апертуры, щитов', target='tt-aperture', placement='top'),
         html.Div([
-            make_aperture_dropdown({'type': 'aperture-value-all', 'index': '0'}, apertures[0]),
+            make_aperture_dropdown({'type': 'aperture-value-all', 'index': '0'}, APERTURES[0]),
             dbc.Button('↓', id='aperture-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='aperture-set-all', placement='bottom')
         ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
@@ -164,8 +166,8 @@ def make_antenna_html_table(pd_table, is_sun, use_solar_object):
         height_head(): height_column(pd_table),
         aperture_head(): aperture_column(pd_table),
         retract_head(): retract_column(pd_table),
-        before_head(DEFAULT_BEFORE): before_column(pd_table),
-        after_head(DEFAULT_AFTER): after_column(pd_table),
+        before_head(DEFAULT_DURATION_BEFORE): before_column(pd_table),
+        after_head(DEFAULT_DURATION_AFTER): after_column(pd_table),
         motion_head(): motion_column(pd_table),
     })
     if is_sun and use_solar_object:

@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 
-from acquisition_table import resolution_to_avgpts, polarization_to_pol, polarization_to_auto
 from app import app
 from dash import dcc, ctx, html
 from dash.dependencies import Input, Output, State
@@ -10,7 +9,7 @@ from dash.exceptions import PreventUpdate
 import os
 from os.path import basename
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from zipfile import ZipFile
 import json
 
@@ -21,11 +20,10 @@ import tempfile
 from utils import make_object_label, get_csmakes_result, run_csmakes, calculate_rpm, generate_motion_entry, \
     generate_operator_entry, generate_skip_observer_entry, generate_observer_transit_entry, \
     generate_observer_entry_body, generate_observer_entry_head, feed_offset_to_time, write_at_job, \
-    write_operator_schedule, write_observer_schedule, write_stop, write_at_rmall, TIMEZONE
+    write_operator_schedule, write_observer_schedule, write_stop, write_at_rmall
 
-DRIVE_TO_CM_SCALE = 1 / 8424 * 3
-
-FAST_FEED_POSITION = 121000
+from defaults import TIMEZONE, DRIVE_TO_CM_SCALE, FAST_FEED_POSITION, resolution_to_avgpts, polarization_to_pol, \
+    polarization_to_auto
 
 
 @app.callback(
@@ -40,7 +38,6 @@ FAST_FEED_POSITION = 121000
 )
 def run_csmake_onclick(n, job_name, object_name, use_solar_object, solar_object_name, json_data):
     if ctx.triggered_id == 'run-csmake':
-        print('Hit')
         pd_table = pd.read_json(json_data[1:-1], orient='split')
         object_label = make_object_label(object_name, use_solar_object, solar_object_name)
         m, f = get_csmakes_result(job_name, object_label, pd_table)

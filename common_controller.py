@@ -6,7 +6,7 @@ from dash import dcc, ctx, ALL
 
 from app import app
 
-from utils import PLANETS, stellar_presets
+from defaults import PLANETS, STELLAR_PRESETS
 
 
 @app.callback(
@@ -21,7 +21,7 @@ def source_onclick(v, n):
         if v in PLANETS:
             return '', '', v
         else:
-            coords = list(stellar_presets.values())[int(v) - 1]
+            coords = list(STELLAR_PRESETS.values())[int(v) - 1]
             return coords['ra'], coords['dec'], coords['name']
     else:
         raise PreventUpdate

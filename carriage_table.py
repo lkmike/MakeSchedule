@@ -2,19 +2,10 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import html
 
+from defaults import DEFAULT_CARRIAGE_POS, DEFAULT_CARRIAGE_AMPLITUDE, DEFAULT_CARRIAGE_MOTION1, \
+    DEFAULT_CARRIAGE_MOTION2
+
 from utils import head_style, head_input_style, make_checkbox
-
-DEFAULT_CARRIAGE_POS = 0
-DEFAULT_CARRIAGE_ENABLED = False
-DEFAULT_CARRIAGE_OSCENABLED = False
-DEFAULT_CARRIAGE_AMPLITUDE = 50000
-DEFAULT_CARRIAGE_SPEED = 400
-DEFAULT_CARRIAGE_ACCEL = 200
-DEFAULT_CARRIAGE_DECEL = 200
-DEFAULT_CARRIAGE_DWELL = 1
-
-DEFAULT_CARMOVE_STRING = '/'.join(list(map(str, [DEFAULT_CARRIAGE_SPEED, DEFAULT_CARRIAGE_ACCEL,
-                                                 DEFAULT_CARRIAGE_DECEL, DEFAULT_CARRIAGE_DWELL])))
 
 
 def make_carriagepos_input(identifier, value):
@@ -119,7 +110,7 @@ def amplitude_column(pd_table):
         lambda x: make_amplitude_input({'type': 'amplitude', 'index': str(x['idx'])}, x['amplitude']), axis=1)
 
 
-def carmove1_head(carmove1=DEFAULT_CARMOVE_STRING):
+def carmove1_head(carmove1=DEFAULT_CARRIAGE_MOTION1):
     return html.Div([
         html.Div('Параметры 1', style=head_style, className='me-2 align-bottom', id='tt-carmove1'),
         dbc.Tooltip('Скорость, ускорение, замедление и пауза в прямом направлении', target='tt-carmove1', placement='top'),
@@ -136,7 +127,7 @@ def carmove1_column(pd_table):
         lambda x: make_carmove_input({'type': 'carmove1', 'index': str(x['idx'])}, f'{int(x["speed1"])}/{int(x["accel1"])}/{int(x["decel1"])}/{int(x["dwell1"])}'), axis=1)
 
 
-def carmove2_head(carmove2=DEFAULT_CARMOVE_STRING):
+def carmove2_head(carmove2=DEFAULT_CARRIAGE_MOTION2):
     return html.Div([
         html.Div('Параметры 2', style=head_style, className='me-2 align-bottom', id='tt-carmove2'),
         dbc.Tooltip('Скорость, ускорение, замедление и пауза в обратном направлении', target='tt-carmove2', placement='top'),

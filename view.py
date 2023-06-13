@@ -7,6 +7,8 @@ import dash_split_pane
 
 from datetime import datetime
 
+from defaults import FAST_FEED_POSITION, SENSITIVE_FEED_POSITION, SOLAR_FEED_POSITION
+
 print('view enters')
 
 load_figure_template('darkly')
@@ -310,9 +312,9 @@ progress_modal = html.Div([dbc.Modal([
 ], id='modal-progress', is_open=False, centered=True, keyboard=False, backdrop=False)])
 
 carriage_position_hints = html.Datalist(children=[
-    html.Option(value=0, label='Солнечный', style={'width': '20em'}),
-    html.Option(value=-46332, label='Чувствительный', style={'width': '20em'}),
-    html.Option(value=121000, label='Скоростной', style={'width': '20em'})
+    html.Option(value=SOLAR_FEED_POSITION, label='Солнечный', style={'width': '20em'}),
+    html.Option(value=SENSITIVE_FEED_POSITION, label='Чувствительный', style={'width': '20em'}),
+    html.Option(value=FAST_FEED_POSITION, label='Скоростной', style={'width': '20em'})
 ], id='carriage-position-hints')
 
 right_pan = dbc.Container(

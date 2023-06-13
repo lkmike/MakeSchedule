@@ -3,23 +3,8 @@ import pandas as pd
 import numpy as np
 from dash import html
 
-from utils import DEFAULT_BEFORE, DEFAULT_AFTER
+from defaults import DEFAULT_ACQUISITION_ATTENUATION, DEFAULT_REGSTART, DEFAULT_REGSTOP, RESOLUTIONS, POLARIZATIONS
 from utils import head_style, head_input_style, make_dropdown
-
-resolutions = ['7.8 МГц', '3.9 МГц', '1.95 МГц', '976 кГц', '488 кГц', '244 кГц', '122 кГц']
-avg_points = [64, 32, 16, 8, 4, 2, 1]
-resolution_to_avgpts = dict(zip(resolutions, avg_points))
-
-polarizations = ['Левая', 'Правая', 'Авто']
-
-polarization_to_pol = dict(zip(polarizations, [False, True, False]))
-polarization_to_auto = dict(zip(polarizations, [False, False, True]))
-
-DEFAULT_ACQUISITION_RESOLUTION = resolutions[1]
-DEFAULT_ACQUISITION_POLARIZATION = polarizations[2]
-DEFAULT_ACQUISITION_ATTENUATION = -10
-DEFAULT_REGSTART = DEFAULT_BEFORE - 0.1
-DEFAULT_REGSTOP = DEFAULT_AFTER - 0.1
 
 
 def make_attenuation_input(identifier, value):
@@ -33,12 +18,12 @@ def make_reg_input(identifier, value):
 
 
 def make_resolution_dropdown(identifier, label, marginleft='0px'):
-    return make_dropdown(identifier, label, items=resolutions, marginleft=marginleft, width='6em')
+    return make_dropdown(identifier, label, items=RESOLUTIONS, marginleft=marginleft, width='6em')
 
 
 def make_polarization_dropdown(identifier, label, marginleft: str = '0px'):
     items = list(map(lambda x: f'{x} дБ', np.arange(0, -32, -0.5)))
-    return make_dropdown(identifier, label, items=polarizations, marginleft=marginleft, width='6em')
+    return make_dropdown(identifier, label, items=POLARIZATIONS, marginleft=marginleft, width='6em')
 
 
 def azimuth_head():
@@ -62,7 +47,7 @@ def resolution_head():
         html.Div('Разрешение', style=head_style, className='me-2 align-bottom', id='tt-resolution'),
         dbc.Tooltip('Разрешение по частоте', target='tt-resolution', placement='top'),
         html.Div([
-            make_resolution_dropdown({'type': 'resolution-value-all', 'index': '0'}, resolutions[1]),
+            make_resolution_dropdown({'type': 'resolution-value-all', 'index': '0'}, RESOLUTIONS[1]),
             dbc.Button('↓', id='resolution-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='aperture-set-all', placement='bottom')
         ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
@@ -96,7 +81,7 @@ def polarization_head():
         html.Div('Поляризация', style=head_style, className='me-2 align-bottom', id='tt-polarization'),
         dbc.Tooltip('Левая/правая/автоматическое переключение', target='tt-polarization', placement='top'),
         html.Div([
-            make_polarization_dropdown({'type': 'polarization-value-all', 'index': '0'}, polarizations[-1]),
+            make_polarization_dropdown({'type': 'polarization-value-all', 'index': '0'}, POLARIZATIONS[-1]),
             dbc.Button('↓', id='polarization-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='polarization-set-all', placement='bottom')
         ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})

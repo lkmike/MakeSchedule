@@ -8,21 +8,22 @@ from dash import ctx
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
-from utils import PLANETS, MAX_DAYS, TIMEZONE, make_object_label, get_efrat_job_stellar, get_efrat_job_object, \
+from utils import make_object_label, get_efrat_job_stellar, get_efrat_job_object, \
     run_efrat, fill_table_string_from_efrat, get_rolled_point_ra_dec
+from defaults import MAX_DAYS, TIMEZONE, PLANETS
 
-from antenna_table import make_antenna_html_table, apertures
+from antenna_table import make_antenna_html_table, APERTURES
 
 
 @app.callback(
     Output({'type': 'aperture-value-all', 'index': '0'}, "label"),
-    list(map(lambda x: Input({'type': 'aperture-value-all:item', 'index': '0', 'val': x}, "n_clicks"), apertures)),
+    list(map(lambda x: Input({'type': 'aperture-value-all:item', 'index': '0', 'val': x}, "n_clicks"), APERTURES)),
 )
 def update_aperture_value(*inputs):
     trigger_id = ctx.triggered_id
     if not trigger_id:
         raise PreventUpdate
-    if trigger_id.val in apertures:
+    if trigger_id.val in APERTURES:
         return trigger_id.val
     else:
         raise PreventUpdate
@@ -30,7 +31,7 @@ def update_aperture_value(*inputs):
 
 @app.callback(
     Output({'type': 'aperture', 'index': ALL}, "label"),
-    list(map(lambda x: Input({'type': 'aperture:item', 'index': ALL, 'val': x}, "n_clicks"), apertures)) +
+    list(map(lambda x: Input({'type': 'aperture:item', 'index': ALL, 'val': x}, "n_clicks"), APERTURES)) +
     [Input('aperture-set-all', 'n_clicks')],
     State({'type': 'aperture', 'index': ALL}, "id"),
     State({'type': 'aperture', 'index': ALL}, "label"),
@@ -43,7 +44,7 @@ def aperture_value_set_all_onclick(*inputs):
         raise PreventUpdate
     if trigger == 'aperture-set-all':
         return [v] * len(labels)
-    elif trigger.val in apertures:
+    elif trigger.val in APERTURES:
         id_indices = [e['index'] for e in ids]
         labels_dict = dict(zip(id_indices, labels))
         labels_dict[trigger.index] = trigger.val
