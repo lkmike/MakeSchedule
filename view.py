@@ -7,9 +7,6 @@ import dash_split_pane
 
 from datetime import datetime
 
-# import model
-# from controller import *
-
 print('view enters')
 
 load_figure_template('darkly')
@@ -97,7 +94,7 @@ tab_stellar = dbc.Container([
         dbc.CardBody([
             dbc.Row([dbc.Col([dbc.Label("Координаты на Солнце", class_name='d-inline-block'),
                               dbc.Checkbox(value=False, disabled=False, id='use-solar-object',
-                                           class_name='m-3 d-inline-block')], width=7)]),
+                                           class_name='m-3 d-inline-block')], width=12)]),
             dbc.Row([
                 dbc.Col([dbc.Label('ID'),
                          dbc.Row(dbc.Col(dbc.Input(id='solar-object-name', size='sm', value='NOAA_')))], width=3),
@@ -110,18 +107,18 @@ tab_stellar = dbc.Container([
                 dbc.Col([dbc.Label(['θ', html.Sub(html.I("x ")), ', ″']),
                          dbc.Row(dbc.Col(
                              dbc.Input(id='solar-lon', type='number', value='-875', min=-1100, max=1100, step=1,
-                                       size='sm')
-                         ))], width=2),
+                                       size='sm', style={'min-width': '63px'})
+                         ))], width=2, style={'min-width': '68px'}),
                 dbc.Col([dbc.Label(['θ', html.Sub(html.I("y ")), ', ″']),
                          dbc.Row(dbc.Col(
                              dbc.Input(id='solar-lat', type='number', value='-112', min=-1100, max=1100, step=1,
-                                       size='sm')
-                         ))], width=2),
+                                       size='sm', style={'min-width': '63px'})
+                         ))], width=2, style={'min-width': '68px'}),
             ])
         ]),
     ], style=card_style),
     dbc.Card([dbc.CardBody([])], style=card_style)
-], class_name='mw-100')
+], class_name='mw-100', style={'min-width': '451px'})
 
 source_tabs = dbc.Tabs([
     dbc.Tab(tab_stellar, label='Объекты без затей', active_label_class_name='text-info'),
@@ -170,17 +167,21 @@ common_ctrl = dbc.Container([
                           # dbc.Col(html.Div([dbc.Textarea(id='azimuths', rows=3, size='sm')],
                           #                  className='d-grid d-block', ), width=8),
                           dbc.Col(html.Div([dbc.Textarea(id='azimuths', rows=3, size='sm',
-                                                         value='+24, +20, +16, +12, +8, +4, +0, -4, -8, -12, -16, -20, -24')],
+                                                         value='+24, +12, +0, -12, -24')],
                                            className='d-grid d-block', ), width=8),
                           dbc.Col([html.Div([dbc.Button('+24:-24 через 12', id='azimuths-12-button', size='sm',
-                                                        color='secondary', className='me-1 w-100'),
+                                                        color='secondary', className='me-1 w-100',
+                                                        style={'min-width': '119px'}),
                                              dbc.Button('+28:-28 через 4', id='azimuths-4-button', size='sm',
-                                                        color='secondary', className='me-1 w-100')
+                                                        color='secondary', className='me-1 w-100',
+                                                        style={'min-width': '119px'})
                                              ], className='d-grid gap-2')], width=2),
                           dbc.Col([html.Div([dbc.Button('+30:-30 через 2', id='azimuths-2-button', size='sm',
-                                                        color='secondary', className='me-1 w-100'),
+                                                        color='secondary', className='me-1 w-100',
+                                                        style={'min-width': '119px'}),
                                              dbc.Button('+30:-30 через 1', id='azimuths-1-button', size='sm',
-                                                        color='secondary', className='me-1 w-100'),
+                                                        color='secondary', className='me-1 w-100',
+                                                        style={'min-width': '119px'}),
                                              ], className='d-grid gap-2')], width=2)])])
     ], style=card_style),
 ], style={'padding': '0px', 'max-width': '100%'})

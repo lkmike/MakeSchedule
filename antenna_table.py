@@ -45,7 +45,7 @@ def motion_head():
             dbc.Tooltip('Выбрать все', target='track-set-all', placement='bottom'),
             dbc.Button('✗', id='track-reset-all', size='sm', style=head_style, class_name='align-bottom'),
             dbc.Tooltip('Сбросить все', target='track-reset-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '61px', 'min-width': '61px'})
     ])
 
 
@@ -63,7 +63,7 @@ def after_head(after):
             make_duration_input('after-value-all', after),
             dbc.Button('↓', id='after-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='after-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
     ])
 
 
@@ -80,7 +80,7 @@ def before_head(before):
             make_duration_input('before-value-all', before),
             dbc.Button('↓', id='before-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='before-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
     ])
 
 
@@ -98,7 +98,7 @@ def retract_head():
             dbc.Tooltip('Выбрать все', target='retract-set-all', placement='bottom'),
             dbc.Button('✗', id='retract-reset-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Сбросить все', target='retract-reset-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '61px', 'min-width': '61px'})
     ])
 
 
@@ -115,7 +115,7 @@ def aperture_head():
             make_aperture_dropdown({'type': 'aperture-value-all', 'index': '0'}, apertures[0]),
             dbc.Button('↓', id='aperture-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='aperture-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
     ])
 
 

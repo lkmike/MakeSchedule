@@ -1,12 +1,16 @@
 import pandas as pd
 
+from datetime import date, datetime
+
 from app import app
-from dash import dcc, ctx, ALL
+from dash import ctx
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
 from acquisition_table import resolutions, polarizations, DEFAULT_ACQUISITION_RESOLUTION, \
-    DEFAULT_ACQUISITION_POLARIZATION, DEFAULT_ACQUISITION_ATTENUATION, make_acquisition_html_table
+    DEFAULT_ACQUISITION_POLARIZATION, DEFAULT_ACQUISITION_ATTENUATION, DEFAULT_REGSTART, DEFAULT_REGSTOP, \
+    make_acquisition_html_table
+from utils import update_from_updated_antenna_table
 
 
 @app.callback(
@@ -132,10 +136,10 @@ def regstop_set_all_onclick(n1, v, cbs):
     ],
     inputs=[
         Input({'type': 'resolution', 'index': ALL}, "label"),
-        Input({'type': 'attenuation', 'index': ALL}, "label"),
+        Input({'type': 'attenuation', 'index': ALL}, "value"),
         Input({'type': 'polarization', 'index': ALL}, "label"),
-        Input({'type': 'regstart', 'index': ALL}, "label"),
-        Input({'type': 'regstop', 'index': ALL}, "label"),
+        Input({'type': 'regstart', 'index': ALL}, "value"),
+        Input({'type': 'regstop', 'index': ALL}, "value"),
         Input('antenna-table', 'data')
     ],
     state=[
@@ -163,8 +167,11 @@ def update_acquisition_table(resolution, attenuation, polarization, regstart, re
     if trigger == 'antenna-table' and json_antenna is not None:
         at = pd.read_json(json_antenna[1:-1], orient='split')
         if df is not None:
-            df['azimuth'] = at['azimuth']
-            df['date_time'] = at['date_time']
+            df = update_from_updated_antenna_table(df, at, lambda x: [DEFAULT_ACQUISITION_RESOLUTION,
+                                                                      DEFAULT_ACQUISITION_ATTENUATION,
+                                                                      DEFAULT_ACQUISITION_POLARIZATION,
+                                                                      x['before'] - 0.1, x['after'] - 0.1])
+
         else:
             df = at[['idx', 'azimuth', 'date_time']].copy()
             df['resolution'] = [DEFAULT_ACQUISITION_RESOLUTION] * df.shape[0]

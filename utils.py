@@ -601,3 +601,38 @@ def generate_observer_transit_entry(azimuth, culmination, obs_start, rolling_sta
 
 def feed_offset_to_time(fo, delta):
     return timedelta(seconds=fo / (1.0537 * np.cos(delta * np.pi / 180)))
+
+
+def update_from_updated_antenna_table(data_frame, antenna_frame, make_default_parameter_set):
+    '''
+    Для каждой записи в antenna_frame проверяет, есть ли в data_frame запись с теми же азимутом и датой. Если нет,
+    создает такую запись с параметрами по умолчанию. Потом для каждой записи в data_frame проверяет, есть ли
+    соответствующая запись в antenna_frame, и если нет, то удаляет запись из data_frame.
+    :param data_frame:
+    :param antenna_frame:
+    :param make_default_parameter_set: Функция, возвращающая набор параметров по умолчанию. В качестве аргумента ей
+        передается antenna_frame, так что можно устанавливать параметры в зависимости от того, что содержится
+        в расписании
+    :return: измененный data_frame
+    '''
+    for index, at_row in antenna_frame.iterrows():
+        _az, _date_time = at_row['azimuth'], at_row['date_time']
+        df_same_row = data_frame.loc[((data_frame['azimuth'] == _az) &
+                                      (data_frame['date_time'].apply(lambda x: x.date()) == _date_time.date()))]
+        if df_same_row.shape[0] == 0:
+            df_row = pd.DataFrame([[0, _az, _date_time, *make_default_parameter_set(at_row)]],
+                                  columns=data_frame.columns)
+
+            data_frame = pd.concat([data_frame, df_row], ignore_index=True)
+    data_frame.sort_values(['date_time', 'azimuth'], inplace=True)
+    data_frame.reset_index(inplace=True, drop=True)
+    for index, df_row in data_frame.iterrows():
+        _az, _date_time = df_row['azimuth'], df_row['date_time']
+        if not ((antenna_frame['azimuth'] == _az)
+                & (antenna_frame['date_time'].apply(lambda x: x.date()) == _date_time.date())).any():
+            data_frame.drop(index, inplace=True)
+    data_frame.sort_values(['date_time', 'azimuth'], inplace=True)
+    data_frame.reset_index(inplace=True, drop=True)
+    data_frame['idx'] = data_frame.index
+
+    return data_frame

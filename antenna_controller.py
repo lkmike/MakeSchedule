@@ -1,15 +1,17 @@
 from app import app
-import pandas
+
+import pandas as pd
+from datetime import datetime
+import astropy
 import dash
-from dash import dcc, ctx, ALL
+from dash import ctx
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
-from utils import *
+from utils import PLANETS, MAX_DAYS, TIMEZONE, make_object_label, get_efrat_job_stellar, get_efrat_job_object, \
+    run_efrat, fill_table_string_from_efrat, get_rolled_point_ra_dec
 
 from antenna_table import make_antenna_html_table, apertures
-from acquisition_table import make_acquisition_html_table
-from carriage_table import make_carriage_html_table
 
 
 @app.callback(

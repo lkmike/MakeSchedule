@@ -1,18 +1,19 @@
-import pandas as pd
-
 from app import app
-from dash import dcc, ctx, ALL
+
+import pandas as pd
+from dash import ctx
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
 from carriage_table import DEFAULT_CARRIAGE_ENABLED, DEFAULT_CARRIAGE_POS, DEFAULT_CARRIAGE_OSCENABLED, \
     DEFAULT_CARRIAGE_AMPLITUDE, DEFAULT_CARRIAGE_SPEED, DEFAULT_CARRIAGE_ACCEL, DEFAULT_CARRIAGE_DECEL, \
     DEFAULT_CARRIAGE_DWELL, make_carriage_html_table
+from utils import update_from_updated_antenna_table
 
 
-def validate_carmove(value):
+def _validate_carmove(value):
     try:
-        speed, accel, decel, dwell = map(float, value.split('/'))
+        speed, accel, decel, dwell = map(int, value.split('/'))
     except ValueError:
         return True
     if speed <= 0 or speed > 1000:
@@ -28,16 +29,16 @@ def validate_carmove(value):
 
 
 app.callback(Output({'type': 'carmove1-value-all', 'index': '0'}, "invalid"),
-             Input({'type': 'carmove1-value-all', 'index': '0'}, "value"), )(validate_carmove)
+             Input({'type': 'carmove1-value-all', 'index': '0'}, "value"), )(_validate_carmove)
 
 app.callback(Output({'type': 'carmove2-value-all', 'index': '0'}, "invalid"),
-             Input({'type': 'carmove2-value-all', 'index': '0'}, "value"), )(validate_carmove)
+             Input({'type': 'carmove2-value-all', 'index': '0'}, "value"), )(_validate_carmove)
 
 app.callback(Output({'type': 'carmove1', 'index': '0'}, "invalid"),
-             Input({'type': 'carmove1', 'index': '0'}, "value"), )(validate_carmove)
+             Input({'type': 'carmove1', 'index': '0'}, "value"), )(_validate_carmove)
 
 app.callback(Output({'type': 'carmove2', 'index': '0'}, "invalid"),
-             Input({'type': 'carmove2', 'index': '0'}, "value"), )(validate_carmove)
+             Input({'type': 'carmove2', 'index': '0'}, "value"), )(_validate_carmove)
 
 
 @app.callback(
@@ -130,12 +131,12 @@ def carmove2_set_all_onclick(n1, v, invalid, cbs):
         Output('carriage-table', 'data'),
     ],
     inputs=[
-        Input({'type': 'carenabled', 'index': ALL}, "label"),
-        Input({'type': 'carriagepos', 'index': ALL}, "label"),
-        Input({'type': 'oscenabled', 'index': ALL}, "label"),
-        Input({'type': 'amplitude', 'index': ALL}, "label"),
-        Input({'type': 'carmove1', 'index': ALL}, "label"),
-        Input({'type': 'carmove2', 'index': ALL}, "label"),
+        Input({'type': 'carenabled', 'index': ALL}, "value"),
+        Input({'type': 'carriagepos', 'index': ALL}, "value"),
+        Input({'type': 'oscenabled', 'index': ALL}, "value"),
+        Input({'type': 'amplitude', 'index': ALL}, "value"),
+        Input({'type': 'carmove1', 'index': ALL}, "value"),
+        Input({'type': 'carmove2', 'index': ALL}, "value"),
         Input('antenna-table', 'data')
     ],
     state=[
@@ -160,16 +161,22 @@ def update_carriage_table(carenabled, carriagepos, oscenabled, amplitude, carmov
         if trigger.type in simple_row_updates:
             exec(f'df["{trigger.type}"] = {trigger.type}')
         elif trigger.type == 'carmove1':
-            df.loc[trigger.index, ['speed1', 'accel1', 'decel1', 'dwell1']] = carmove1.split('/')
+            df.loc[int(trigger.index), ['speed1', 'accel1', 'decel1', 'dwell1']] = carmove1[int(trigger.index)].split('/')
         elif trigger.type == 'carmove2':
-            df.loc[trigger.index, ['speed2', 'accel2', 'decel2', 'dwell2']] = carmove2.split('/')
+            df.loc[int(trigger.index), ['speed2', 'accel2', 'decel2', 'dwell2']] = carmove2[int(trigger.index)].split('/')
         return existing_table, "'" + df.to_json(date_format='iso', orient='split') + "'"
 
     if trigger == 'antenna-table' and json_antenna is not None:
         at = pd.read_json(json_antenna[1:-1], orient='split')
         if df is not None:
-            df['azimuth'] = at['azimuth']
-            df['date_time'] = at['date_time']
+            df = update_from_updated_antenna_table(df, at, lambda x: [DEFAULT_CARRIAGE_ENABLED, DEFAULT_CARRIAGE_POS,
+                                                                      DEFAULT_CARRIAGE_OSCENABLED,
+                                                                      DEFAULT_CARRIAGE_AMPLITUDE,
+                                                                      DEFAULT_CARRIAGE_SPEED, DEFAULT_CARRIAGE_ACCEL,
+                                                                      DEFAULT_CARRIAGE_DECEL, DEFAULT_CARRIAGE_DWELL,
+                                                                      DEFAULT_CARRIAGE_SPEED, DEFAULT_CARRIAGE_ACCEL,
+                                                                      DEFAULT_CARRIAGE_DECEL, DEFAULT_CARRIAGE_DWELL])
+
         else:
             df = at[['idx', 'azimuth', 'date_time']].copy()
             df['carenabled'] = [DEFAULT_CARRIAGE_ENABLED] * df.shape[0]

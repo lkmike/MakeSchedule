@@ -1,6 +1,11 @@
 from app import app, server
 
-from common_controller import *
+from controller import *
+
+import logging
+
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
 
 if __name__ == "__main__":
     app.run_server(

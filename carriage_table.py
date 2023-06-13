@@ -24,13 +24,13 @@ def make_carriagepos_input(identifier, value):
 
 
 def make_amplitude_input(identifier, value):
-    return dbc.Input(value=value, id=identifier, type='number', style={**head_input_style, **{'width': '7em'}},
-                     class_name='border-dark', size='sm', min=0, max=200000, step=1)
+    return dbc.Input(value=value, id=identifier, type='number', style={**head_input_style, **{'min-width': '7em'}},
+                     class_name='border-dark w-75', size='sm', min=0, max=200000, step=1)
 
 
 def make_carmove_input(identifier, value):
     return dbc.Input(value=value, debounce=True, id=identifier, type='text',
-                     style={**head_input_style, **{'width': '10em'}}, class_name='border-dark', size='sm')
+                     style={**head_input_style, **{'min-width': '10em'}}, class_name='border-dark w-75', size='sm')
 
 
 def azimuth_head():
@@ -75,7 +75,7 @@ def carriagepos_head(position=DEFAULT_CARRIAGE_POS):
             make_carriagepos_input('carriagepos-value-all', position),
             dbc.Button('↓', id='carriagepos-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='carriagepos-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '123px', 'min-width': '123px'})
     ])
 
 
@@ -110,7 +110,7 @@ def amplitude_head(amplitude=DEFAULT_CARRIAGE_AMPLITUDE):
             make_amplitude_input('amplitude-value-all', amplitude),
             dbc.Button('↓', id='amplitude-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='amplitude-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'min-width': '123px'})
     ])
 
 
@@ -127,13 +127,13 @@ def carmove1_head(carmove1=DEFAULT_CARMOVE_STRING):
             make_carmove_input({'type': 'carmove1-value-all', 'index': '0'}, carmove1),
             dbc.Button('↓', id='carmove1-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='carmove1-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block w-100', style={'min-width': '162px'})
     ])
 
 
 def carmove1_column(pd_table):
     return pd_table[['idx', 'speed1', 'accel1', 'decel1', 'dwell1']].apply(
-        lambda x: make_carmove_input({'type': 'carmove1', 'index': str(x['idx'])}, f'{x["speed1"]}/{x["accel1"]}/{x["decel1"]}/{x["dwell1"]}'), axis=1)
+        lambda x: make_carmove_input({'type': 'carmove1', 'index': str(x['idx'])}, f'{int(x["speed1"])}/{int(x["accel1"])}/{int(x["decel1"])}/{int(x["dwell1"])}'), axis=1)
 
 
 def carmove2_head(carmove2=DEFAULT_CARMOVE_STRING):
@@ -144,13 +144,13 @@ def carmove2_head(carmove2=DEFAULT_CARMOVE_STRING):
             make_carmove_input({'type': 'carmove2-value-all', 'index': '0'}, carmove2),
             dbc.Button('↓', id='carmove2-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='carmove2-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block w-100', style={'min-width': '162px'})
     ])
 
 
 def carmove2_column(pd_table):
-    return pd_table[['idx', 'speed1', 'accel1', 'decel1', 'dwell1']].apply(
-        lambda x: make_carmove_input({'type': 'carmove2', 'index': str(x['idx'])}, f'{x["speed1"]}/{x["accel1"]}/{x["decel1"]}/{x["dwell1"]}'), axis=1)
+    return pd_table[['idx', 'speed2', 'accel2', 'decel2', 'dwell2']].apply(
+        lambda x: make_carmove_input({'type': 'carmove2', 'index': str(x['idx'])}, f'{int(x["speed2"])}/{int(x["accel2"])}/{int(x["decel2"])}/{int(x["dwell2"])}'), axis=1)
 
 
 def make_carriage_html_table(pd_table):

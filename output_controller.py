@@ -1,15 +1,31 @@
+import pandas as pd
+import numpy as np
+
 from acquisition_table import resolution_to_avgpts, polarization_to_pol, polarization_to_auto
 from app import app
-from dash import dcc, ctx, ALL
+from dash import dcc, ctx, ALL, html
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
 import os
 from os.path import basename
+
+from datetime import datetime, timedelta
 from zipfile import ZipFile
 import json
 
-from utils import *
+import dash_bootstrap_components as dbc
+
+import tempfile
+
+from utils import make_object_label, get_csmakes_result, run_csmakes, calculate_rpm, generate_motion_entry, \
+    generate_operator_entry, generate_skip_observer_entry, generate_observer_transit_entry, \
+    generate_observer_entry_body, generate_observer_entry_head, feed_offset_to_time, write_at_job, \
+    write_operator_schedule, write_observer_schedule, write_stop, write_at_rmall
+
+DRIVE_TO_CM_SCALE = 1 / 8424 * 3
+
+FAST_FEED_POSITION = 121000
 
 
 @app.callback(
@@ -24,6 +40,7 @@ from utils import *
 )
 def run_csmake_onclick(n, job_name, object_name, use_solar_object, solar_object_name, json_data):
     if ctx.triggered_id == 'run-csmake':
+        print('Hit')
         pd_table = pd.read_json(json_data[1:-1], orient='split')
         object_label = make_object_label(object_name, use_solar_object, solar_object_name)
         m, f = get_csmakes_result(job_name, object_label, pd_table)
@@ -92,7 +109,7 @@ def load_csi_onclick(n, job_name, object_name, use_solar_object, solar_object_na
 def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, correction: float,
                        object_name: str, job_name: str, use_solar_object, solar_object_name, json_antenna,
                        json_acquisition, json_carriage):
-    antanna_table = pd.read_json(json_antenna[1:-1], orient='split')
+    antenna_table = pd.read_json(json_antenna[1:-1], orient='split')
     acquisition_table = pd.read_json(json_acquisition[1:-1], orient='split')
     carriage_table = pd.read_json(json_carriage[1:-1], orient='split')
 
@@ -110,7 +127,7 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
             (_, resolution, attenuation, polarization, regstart, regstop), \
             (_, carenabled, carriagepos, oscenabled, amplitude, speed1, accel1, decel1, dwell1, speed2, accel2, decel2,
              dwell2) \
-            in antanna_table[['azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before', 'after', 'track',
+            in antenna_table[['azimuth', 'date_time', 'h_per', 'aperture', 'retract', 'before', 'after', 'track',
                               'a_obj', 'h_obj', 'vad', 'vhd', 'dec_degrees', 'pos_angle_diag', 'ra_degrees',
                               'sid_time_degrees']].itertuples(), \
             acquisition_table.itertuples(), carriage_table.itertuples():
@@ -161,11 +178,11 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
                 }
             }
 
-            if (carenabled):
-                feed_offset = 121000 - carriagepos
+            if carenabled:
+                feed_offset_drive = FAST_FEED_POSITION - carriagepos
             else:
-                feed_offset = np.nan
-
+                feed_offset_drive = np.nan
+            feed_offset = DRIVE_TO_CM_SCALE * feed_offset_drive
             feed_offset_time = feed_offset_to_time(feed_offset, dec_degrees)
 
             carriage_motion = {}
@@ -206,11 +223,11 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
     with tempfile.TemporaryDirectory() as dir_name:
         with open(f'{dir_name}/modifications.json', 'w') as f:
             json.dump(json_jobs, f, indent=2)
-        write_at_job(at_job, object_label, antanna_table, dir_name)
+        write_at_job(at_job, object_label, antenna_table, dir_name)
         write_at_rmall(dir_name)
         write_stop(dir_name)
-        write_operator_schedule(operator_schedule, object_label, antanna_table, dir_name)
-        write_observer_schedule(observer_schedule, object_label, antanna_table, dir_name)
+        write_operator_schedule(operator_schedule, object_label, antenna_table, dir_name)
+        write_observer_schedule(observer_schedule, object_label, antenna_table, dir_name)
 
         arch_name = f'{job_name}_track'
         zip_name = f'{dir_name}/{arch_name}.zip'

@@ -1,25 +1,12 @@
-import json
+from datetime import date, datetime, timedelta
 
-import astropy.time
-import dash
-import pandas as pd
 from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 from dash import dcc, ctx, ALL
 
 from app import app
-from antenna_table import make_antenna_html_table
-from carriage_table import make_carriage_html_table
-from acquisition_table import make_acquisition_html_table
-from utils import *
-from utils import run_efrat, write_observer_schedule, write_operator_schedule, write_stop, write_at_rmall, write_at_job, \
-    generate_observer_entry_body, generate_observer_entry_head, generate_skip_observer_entry, \
-    generate_observer_transit_entry
 
-from carriage_controller import *
-from antenna_controller import *
-from acquisition_controller import *
-
-print("controller enters")
+from utils import PLANETS, stellar_presets
 
 
 @app.callback(

@@ -14,8 +14,6 @@ polarizations = ['Левая', 'Правая', 'Авто']
 polarization_to_pol = dict(zip(polarizations, [False, True, False]))
 polarization_to_auto = dict(zip(polarizations, [False, False, True]))
 
-
-
 DEFAULT_ACQUISITION_RESOLUTION = resolutions[1]
 DEFAULT_ACQUISITION_POLARIZATION = polarizations[2]
 DEFAULT_ACQUISITION_ATTENUATION = -10
@@ -66,7 +64,7 @@ def resolution_head():
             make_resolution_dropdown({'type': 'resolution-value-all', 'index': '0'}, resolutions[1]),
             dbc.Button('↓', id='resolution-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='aperture-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
     ])
 
 
@@ -83,7 +81,7 @@ def attenuation_head(attenuation=DEFAULT_ACQUISITION_ATTENUATION):
             make_attenuation_input('attenuation-value-all', attenuation),
             dbc.Button('↓', id='attenuation-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='attenuation-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
     ])
 
 
@@ -100,7 +98,7 @@ def polarization_head():
             make_polarization_dropdown({'type': 'polarization-value-all', 'index': '0'}, polarizations[-1]),
             dbc.Button('↓', id='polarization-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='polarization-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
     ])
 
 
@@ -118,7 +116,7 @@ def regstart_head(regstart=DEFAULT_REGSTART):
             make_reg_input('regstart-value-all', regstart),
             dbc.Button('↓', id='regstart-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='regstart-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
     ])
 
 
@@ -135,7 +133,7 @@ def regstop_head(regstop=DEFAULT_REGSTOP):
             make_reg_input('regstop-value-all', regstop),
             dbc.Button('↓', id='regstop-set-all', size='sm', class_name='align-bottom'),
             dbc.Tooltip('Установить значение для всех азимутов', target='regstop-set-all', placement='bottom')
-        ], className='d-block')
+        ], className='d-block', style={'max-width': '110px', 'min-width': '110px'})
     ])
 
 
