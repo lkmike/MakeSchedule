@@ -6,7 +6,8 @@ from dash import dcc, ctx, ALL
 
 from app import app
 
-from defaults import PLANETS, STELLAR_PRESETS
+from defaults import PLANETS, STELLAR_PRESETS, begin_observations_today, begin_observations_tomorrow, \
+    end_observations_today, end_observations_tomorrow
 
 
 @app.callback(
@@ -46,10 +47,9 @@ def aia_datetime_onclick(n1, n2):
 )
 def schedule_begin_onclick(n1, n2):
     if 'schedule-begin-date-today-button' == ctx.triggered_id:
-        return (date.today()).strftime('%Y-%m-%dT%H:%M:%S')
+        return begin_observations_today()
     elif 'schedule-begin-date-tomorrow-button' == ctx.triggered_id:
-        return (datetime.fromisoformat(f"{date.today().strftime('%Y-%m-%d')}")
-                + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
+        return begin_observations_tomorrow()
 
 
 @app.callback(
@@ -59,11 +59,9 @@ def schedule_begin_onclick(n1, n2):
 )
 def schedule_end_onclick(n1, n2):
     if 'schedule-end-date-today-button' == ctx.triggered_id:
-        return (datetime.fromisoformat(f"{date.today().strftime('%Y-%m-%d')}")
-                + timedelta(hours=23, minutes=59)).strftime('%Y-%m-%dT%H:%M:%S')
+        return end_observations_today()
     elif 'schedule-end-date-tomorrow-button' == ctx.triggered_id:
-        return (datetime.fromisoformat(f"{date.today().strftime('%Y-%m-%d')}")
-                + timedelta(days=1, hours=23, minutes=59)).strftime('%Y-%m-%dT%H:%M:%S')
+        return end_observations_tomorrow()
 
 
 @app.callback(

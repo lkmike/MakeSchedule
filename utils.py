@@ -19,7 +19,7 @@ from astropy.coordinates import SkyCoord
 import astropy.time
 
 from defaults import DEFAULT_DURATION_BEFORE, DEFAULT_DURATION_AFTER, DEFAULT_APERTURE, DEFAULT_RETRACT, \
-    DEFAULT_TRACK, PLANETS
+    DEFAULT_TRACK, PLANETS, MOTION_DEBUG, debug_time
 
 
 def get_efrat_job_stellar(source_name, ra, dec, azimuths, date_utc, n_days):
@@ -437,6 +437,9 @@ def efrat_to_datetime(year, month, day, hour, minute, second):
 
 
 def fill_table_string_from_efrat(index, efrat_string, begin_datetime, end_datetime, std, dont_use_config):
+    """
+    2023  6  2 11 27 22.26   24.000  70.581661  -53.234903 59.498988  4 40 00.54  22 09 52.3  2 55 48.18   41.1  -0.61 308.61 -10.45    21.38     8.67
+    """
     # В конце строки 0x00
     a = efrat_string[:-1].replace('- ', '-').split()
 
@@ -473,11 +476,12 @@ def fill_table_string_from_efrat(index, efrat_string, begin_datetime, end_dateti
     va = float(a[23])
     vh = float(a[24])
     if begin_datetime <= datetime_local_out <= end_datetime:
+        if MOTION_DEBUG:
+            datetime_local_out = debug_time(index)
         idx = str(index)
         return [idx, az_out_str, datetime_local_out, h_per, DEFAULT_APERTURE, DEFAULT_RETRACT, DEFAULT_DURATION_BEFORE,
                 DEFAULT_DURATION_AFTER, DEFAULT_TRACK, a_obj, h_obj, ra_degrees, dec_degrees, sid_time_degrees, refr,
-                nut_ra,
-                p_obj, p_diag, va, vh, std]
+                nut_ra, p_obj, p_diag, va, vh, std]
 
 
 def get_rolled_point_ra_dec(ref_point, ref_time: astropy.time.Time, obs_time: astropy.time.Time) -> tuple:

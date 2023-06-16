@@ -223,6 +223,9 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
 
         table_num = []
         for i, el in enumerate(efrat_strings[:-1]):
+            if 'The object is not observable' in el:
+                print(f'EFRAT говорит, "{el}"')
+                continue
             standard = 0
             try:
                 standard = df['std'].iloc[i]
@@ -254,6 +257,7 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
 
                 s = get_efrat_job_stellar(object_label, el_ra, el_dec, el_azimuth, date_utc, '1')
                 efrat_strings = run_efrat(s)
+                # print(efrat_strings)
                 standard = 0
                 try:
                     standard = df['std'].iloc[i]

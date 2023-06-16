@@ -81,7 +81,7 @@ def oscenabled_all_onclick(n1, n2, cbs):
     State({'type': 'carriagepos', 'index': ALL}, 'value')
 )
 def carriagepos_set_all_onclick(n1, v, cbs):
-    if ctx.triggered_id == 'carriagepos-set-all' and v:
+    if ctx.triggered_id == 'carriagepos-set-all' and (v or v == 0):
         return [v] * len(cbs)
     else:
         raise PreventUpdate
@@ -151,7 +151,6 @@ def carmove2_set_all_onclick(n1, v, invalid, cbs):
 def update_carriage_table(carenabled, carriagepos, oscenabled, amplitude, carmove1, carmove2, json_antenna,
                           existing_table, json_data):
     trigger = ctx.triggered_id
-    print(trigger)
     simple_row_updates = ['carenabled', 'carriagepos', 'oscenabled', 'amplitude']
     complex_row_updates = ['carmove1', 'carmove2']
     row_updates = simple_row_updates + complex_row_updates

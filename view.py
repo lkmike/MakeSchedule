@@ -7,7 +7,9 @@ import dash_split_pane
 
 from datetime import datetime
 
-from defaults import FAST_FEED_POSITION, SENSITIVE_FEED_POSITION, SOLAR_FEED_POSITION
+from defaults import FAST_FEED_POSITION, SENSITIVE_FEED_POSITION, SOLAR_FEED_POSITION, begin_observations_today, \
+    end_observations_today, DEFAULT_BEGIN_OBSERVATIONS, DEFAULT_END_OBSERVATIONS, DEFAULT_AZIMUTH_LIST, DEFAULT_SOLAR_X, \
+    DEFAULT_SOLAR_Y, DEFAULT_AIA_TIME, MOTION_DEBUG, DEFAULT_OBJECT, DEFAULT_OBJECT_ID
 
 print('view enters')
 
@@ -67,6 +69,11 @@ tab_sun = dbc.Container(dbc.Tabs([
             active_label_class_name='text-info'),
 ]))
 
+if MOTION_DEBUG:
+    debug_label = dash.dcc.Markdown('# ОТЛАДКА', className='text-danger d-flex')
+else:
+    debug_label = html.Div()
+
 tab_stellar = dbc.Container([
     dbc.Card([
         dbc.CardBody([
@@ -80,12 +87,12 @@ tab_stellar = dbc.Container([
                                  {'label': '3c273', 'value': '4'},
                                  {'label': 'Солнце', 'value': '[Sun]'},
                                  {'label': 'Луна', 'value': '[Moon]'}
-                             ], id='stellar-source', size='sm', value='[Sun]', class_name='bg-dark text-secondary')
+                             ], id='stellar-source', size='sm', value=DEFAULT_OBJECT, class_name='bg-dark text-secondary')
                          ))], width=3),
                 dbc.Col([dbc.Label('‌'),
                          dbc.Row(dbc.Col(dbc.Button('>', id='stellar-source-submit-button', size='sm')))], width=1),
                 dbc.Col([dbc.Label('Название'),
-                         dbc.Row(dbc.Col(dbc.Input(id='stellar-name', size='sm', value='[Sun]')))], width=2),
+                         dbc.Row(dbc.Col(dbc.Input(id='stellar-name', size='sm', value=DEFAULT_OBJECT_ID)))], width=2),
                 dbc.Col([dbc.Label('α'),
                          dbc.Row(dbc.Col(dbc.Input(id='stellar-ra', size='sm', value='')))], width=3),
                 dbc.Col([dbc.Label('δ'),
@@ -102,24 +109,24 @@ tab_stellar = dbc.Container([
                          dbc.Row(dbc.Col(dbc.Input(id='solar-object-name', size='sm', value='NOAA_')))], width=3),
                 dbc.Col([dbc.Label([html.I('t'), html.Sub(" ref")]),
                          dbc.Row([
-                             dbc.Col(dbc.Input(id='solar-ref-time', value='2023-06-01T21:03:09', debounce=True,
+                             dbc.Col(dbc.Input(id='solar-ref-time', value=DEFAULT_AIA_TIME(), debounce=True,
                                                step='1', size='sm')),
                              html.Div([], id='solar-ref-time-sink')
                          ])], width=5),
                 dbc.Col([dbc.Label(['θ', html.Sub(html.I("x ")), ', ″']),
                          dbc.Row(dbc.Col(
-                             dbc.Input(id='solar-lon', type='number', value='-875', min=-1100, max=1100, step=1,
+                             dbc.Input(id='solar-lon', type='number', value=DEFAULT_SOLAR_X, min=-1100, max=1100, step=1,
                                        size='sm', style={'min-width': '63px'})
                          ))], width=2, style={'min-width': '68px'}),
                 dbc.Col([dbc.Label(['θ', html.Sub(html.I("y ")), ', ″']),
                          dbc.Row(dbc.Col(
-                             dbc.Input(id='solar-lat', type='number', value='-112', min=-1100, max=1100, step=1,
+                             dbc.Input(id='solar-lat', type='number', value=DEFAULT_SOLAR_Y, min=-1100, max=1100, step=1,
                                        size='sm', style={'min-width': '63px'})
                          ))], width=2, style={'min-width': '68px'}),
             ])
         ]),
     ], style=card_style),
-    dbc.Card([dbc.CardBody([])], style=card_style)
+    dbc.Card([dbc.CardBody([debug_label])], style=card_style, class_name='flex-fill h-100 justify-content-center align-content-center')
 ], class_name='mw-100', style={'min-width': '451px'})
 
 source_tabs = dbc.Tabs([
@@ -136,10 +143,8 @@ common_ctrl = dbc.Container([
     dbc.Card([dbc.CardBody([dbc.Row([
         dbc.Col([dbc.Label('Начало наблюдений'),
                  dbc.Row(
-                     # [dbc.Col(dbc.Input(id='schedule-begin-datetime-input', type='datetime-local', size='sm'), width=6),
                      [dbc.Col(dbc.Input(id='schedule-begin-datetime-input', type='datetime-local', size='sm',
-                                        value=(datetime.fromisoformat('2023-06-02T00:00:00')).strftime(
-                                            '%Y-%m-%dT%H:%M:%S')), width=6),
+                                        value=DEFAULT_BEGIN_OBSERVATIONS()), width=6),
                       dbc.Col(html.Div([dbc.Button('Сегодня', id='schedule-begin-date-today-button',
                                                    color='secondary', className='me-2', size='sm',
                                                    style={'minWidth': '73px', 'width': '40%'}),
@@ -150,10 +155,8 @@ common_ctrl = dbc.Container([
                       ])], width=6),
         dbc.Col([dbc.Label('Конец наблюдений'),
                  dbc.Row(
-                     # [dbc.Col(dbc.Input(id='schedule-end-datetime-input', type='datetime-local', size='sm'), width=6),
                      [dbc.Col(dbc.Input(id='schedule-end-datetime-input', type='datetime-local', size='sm',
-                                        value=(datetime.fromisoformat('2023-06-02T23:00:00')).strftime(
-                                            '%Y-%m-%dT%H:%M:%S')), width=6),
+                                        value=DEFAULT_END_OBSERVATIONS()), width=6),
                       dbc.Col(html.Div([dbc.Button('Сегодня', id='schedule-end-date-today-button',
                                                    color='secondary', className='me-2', size='sm',
                                                    style={'minWidth': '73px', 'width': '40%'}),
@@ -169,7 +172,7 @@ common_ctrl = dbc.Container([
                           # dbc.Col(html.Div([dbc.Textarea(id='azimuths', rows=3, size='sm')],
                           #                  className='d-grid d-block', ), width=8),
                           dbc.Col(html.Div([dbc.Textarea(id='azimuths', rows=3, size='sm',
-                                                         value='+24, +12, +0, -12, -24')],
+                                                         value=DEFAULT_AZIMUTH_LIST)],
                                            className='d-grid d-block', ), width=8),
                           dbc.Col([html.Div([dbc.Button('+24:-24 через 12', id='azimuths-12-button', size='sm',
                                                         color='secondary', className='me-1 w-100',
