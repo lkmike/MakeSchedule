@@ -9,7 +9,7 @@ from datetime import datetime
 
 from defaults import FAST_FEED_POSITION, SENSITIVE_FEED_POSITION, SOLAR_FEED_POSITION, begin_observations_today, \
     end_observations_today, DEFAULT_BEGIN_OBSERVATIONS, DEFAULT_END_OBSERVATIONS, DEFAULT_AZIMUTH_LIST, DEFAULT_SOLAR_X, \
-    DEFAULT_SOLAR_Y, DEFAULT_AIA_TIME, MOTION_DEBUG, DEFAULT_OBJECT, DEFAULT_OBJECT_ID
+    DEFAULT_SOLAR_Y, DEFAULT_AIA_TIME, DEBUG, DEFAULT_OBJECT, DEFAULT_OBJECT_ID
 
 print('view enters')
 
@@ -69,7 +69,7 @@ tab_sun = dbc.Container(dbc.Tabs([
             active_label_class_name='text-info'),
 ]))
 
-if MOTION_DEBUG:
+if DEBUG:
     debug_label = dash.dcc.Markdown('# ОТЛАДКА', className='text-danger d-flex')
 else:
     debug_label = html.Div()
@@ -78,7 +78,7 @@ tab_stellar = dbc.Container([
     dbc.Card([
         dbc.CardBody([
             dbc.Row([
-                dbc.Col([dbc.Label('Объект'),
+                dbc.Col([dbc.Label('‌‌'),
                          dbc.Row(dbc.Col(
                              dbc.Select(options=[
                                  {'label': 'Краб', 'value': '1'},
@@ -87,11 +87,12 @@ tab_stellar = dbc.Container([
                                  {'label': '3c273', 'value': '4'},
                                  {'label': 'Солнце', 'value': '[Sun]'},
                                  {'label': 'Луна', 'value': '[Moon]'}
-                             ], id='stellar-source', size='sm', value=DEFAULT_OBJECT, class_name='bg-dark text-secondary')
+                             ], id='stellar-source', size='sm', value=DEFAULT_OBJECT,
+                                 class_name='bg-dark text-secondary')
                          ))], width=3),
                 dbc.Col([dbc.Label('‌'),
                          dbc.Row(dbc.Col(dbc.Button('>', id='stellar-source-submit-button', size='sm')))], width=1),
-                dbc.Col([dbc.Label('Название'),
+                dbc.Col([dbc.Label('Объект'),
                          dbc.Row(dbc.Col(dbc.Input(id='stellar-name', size='sm', value=DEFAULT_OBJECT_ID)))], width=2),
                 dbc.Col([dbc.Label('α'),
                          dbc.Row(dbc.Col(dbc.Input(id='stellar-ra', size='sm', value='')))], width=3),
@@ -115,25 +116,44 @@ tab_stellar = dbc.Container([
                          ])], width=5),
                 dbc.Col([dbc.Label(['θ', html.Sub(html.I("x ")), ', ″']),
                          dbc.Row(dbc.Col(
-                             dbc.Input(id='solar-lon', type='number', value=DEFAULT_SOLAR_X, min=-1100, max=1100, step=1,
+                             dbc.Input(id='solar-lon', type='number', value=DEFAULT_SOLAR_X, min=-1100, max=1100,
+                                       step=1,
                                        size='sm', style={'min-width': '63px'})
                          ))], width=2, style={'min-width': '68px'}),
                 dbc.Col([dbc.Label(['θ', html.Sub(html.I("y ")), ', ″']),
                          dbc.Row(dbc.Col(
-                             dbc.Input(id='solar-lat', type='number', value=DEFAULT_SOLAR_Y, min=-1100, max=1100, step=1,
+                             dbc.Input(id='solar-lat', type='number', value=DEFAULT_SOLAR_Y, min=-1100, max=1100,
+                                       step=1,
                                        size='sm', style={'min-width': '63px'})
                          ))], width=2, style={'min-width': '68px'}),
             ])
         ]),
+
+        dbc.CardBody([
+            dbc.Row([dbc.Button('Загрузить изображение', id='load-fits', color='primary', className='me-2', size='sm',
+                                style={'minWidth': '200px', 'width': '200px'})]),
+        ]),
+
+        dbc.CardBody([
+            dbc.Row([
+                html.Div(
+                    html.Div(id='fits-plot',
+                             style={'position': 'absolute', 'top': 0, 'bottom': 0, 'left': 0, 'right': 0}),
+                    style={'width': '85%', 'padding-top': '85%', 'position': 'relative'}
+                )
+            ], className='justify-content-center')
+        ])
     ], style=card_style),
-    dbc.Card([dbc.CardBody([debug_label])], style=card_style, class_name='flex-fill h-100 justify-content-center align-content-center')
+
+    dbc.Card([dbc.CardBody([debug_label])], style=card_style,
+             class_name='flex-fill h-100 justify-content-center align-content-center')
 ], class_name='mw-100', style={'min-width': '451px'})
 
-source_tabs = dbc.Tabs([
-    dbc.Tab(tab_stellar, label='Объекты без затей', active_label_class_name='text-info'),
-    dbc.Tab(tab_sun, label='Точка на Солнце', class_name='h-100',
-            active_label_class_name='text-info'),
-])
+# source_tabs = dbc.Tabs([
+#     dbc.Tab(tab_stellar, label='Объекты без затей', active_label_class_name='text-info'),
+#     dbc.Tab(tab_sun, label='Точка на Солнце', class_name='h-100',
+#             active_label_class_name='text-info'),
+# ])
 
 left_pan = dbc.Card(
     children=[tab_stellar], class_name='h-100'

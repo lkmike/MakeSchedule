@@ -105,12 +105,12 @@ RUNS_GAP = timedelta(hours=12)
 
 def debug_time(i):
     gen = [0, 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16, 18, 19, 21, 22, 24, 25]
-    return datetime.now() + timedelta(minutes=5) + gen[i] * timedelta(minutes=8)
+    return datetime.now() + timedelta(minutes=5) + gen[i] * timedelta(minutes=9)
 
 
-MOTION_DEBUG = True
+DEBUG = False
 
-if MOTION_DEBUG:
+if DEBUG:
 
     RUNS_GAP = timedelta(minutes=12)
     # DEFAULT_OBJECT = '2' # CygA

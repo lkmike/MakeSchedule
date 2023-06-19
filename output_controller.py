@@ -21,7 +21,7 @@ import tempfile
 
 from utils import make_object_label, get_csmakes_result, run_csmakes, calculate_rpm, generate_motion_entry, \
     generate_operator_entry, generate_skip_observer_entry, generate_observer_transit_entry, \
-    generate_observer_entry_body, generate_observer_entry_head, feed_offset_to_time, write_at_job, \
+    generate_observer_entry_body, generate_observer_entry_head, feed_offset_to_timedelta, write_at_job, \
     write_operator_schedule, write_observer_schedule, write_stop, write_at_rmall
 
 from defaults import TIMEZONE, DRIVE_TO_CM_SCALE, FAST_FEED_POSITION, resolution_to_avgpts, polarization_to_pol, \
@@ -141,7 +141,7 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
                                           seconds_per_degree300=s_per_degree_at_300, ra_degrees=ra_degrees,
                                           sid_time_degrees=sid_time_degrees)
 
-        culmination = date_time
+        culmination = date_time.tz_localize(TIMEZONE)
         culm_p2 = culmination - 2 * s_per_degree
         culmination_p1 = culmination - s_per_degree
         culmimnation_m1 = culmination + s_per_degree
@@ -184,8 +184,8 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
         else:
             feed_offset_drive = 0
         feed_offset = DRIVE_TO_CM_SCALE * feed_offset_drive
-        feed_offset_time = feed_offset_to_time(feed_offset, dec_degrees)
-        local_culmination = (culmination + feed_offset_time).tz_localize(TIMEZONE)
+        feed_offset_time = feed_offset_to_timedelta(feed_offset, dec_degrees)
+        local_culmination = culmination + feed_offset_time
         pulse1_rlc_begin = -regstart * 60
         pulse1_rlc_end = pulse1_rlc_begin + PULSE_DURATION
         pulse2_rlc_begin = regstop * 60
@@ -201,7 +201,7 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
         json_dict = {
             'azimuth': azimuth,
             'object': object_label,
-            'culmination': culmination.tz_localize(TIMEZONE).isoformat(),
+            'culmination': culmination.isoformat(),
             'feed_offset': feed_offset,
             'feed_offset_time': feed_offset_time.total_seconds(),
             'record_duration_rlc': [record_duration_rlc_begin, record_duration_rlc_end],
@@ -252,7 +252,9 @@ def load_track_onclick(n: int, s_per_degree_at_300: float, start_position: str, 
         operator_schedule += operator_entry
         observer_schedule += observer_entry
 
-    for e in list(zip(run_begins, run_ends)):
+    print(reversed(list(zip(run_begins, run_ends))))
+
+    for e in reversed(list(zip(run_begins, run_ends))):
         json_jobs = [{
             'setup': True,
             'observation': [e[0].isoformat(), e[1].isoformat()]
@@ -303,10 +305,10 @@ def get_max_time_from_motion_profile(profile):
 
 
 def get_continuous_runs(df):
-    first = df['date_time'].diff()
+    first: pd.Series = df['date_time'].diff()
     first = (first > RUNS_GAP)
     first.iloc[0] = True
-    last = df['date_time'].diff(periods=-1)
+    last: pd.Series = df['date_time'].diff(periods=-1)
     last = (-last > RUNS_GAP)
     last.iloc[-1] = True
     is_first = df[['idx', 'date_time']][first]
@@ -316,13 +318,6 @@ def get_continuous_runs(df):
     assert len(is_first) == len(is_last)
     runs = pd.concat([is_first, is_last], axis=1)
     runs.columns = ['idx_begin', 'run_begin', 'idx_end', 'run_end']
-    # result = []
-    # for (_, run_begin, run_end) in runs.itertuples():
-    #     result.append({
-    #         'setup': True,
-    #         'run_begin': run_begin.isoformat(),
-    #         'run_end': run_end.isoformat(),
-    #     })
     return runs
 
 
@@ -340,12 +335,13 @@ def make_carriage_motion_entry(culmination, local_culmination, pulse1_rlc, pulse
 
     period = timedelta(seconds=v1 / 2 * (1 / a1 + 1 / d1) + v2 / 2 * (1 / a2 + 1 / d2) + amplitude * (1 / v1 + 1 / v2)
                                + dw1 + dw2)
-    t0_rlc = timedelta(seconds=amplitude / 2 / v1 + v1 / 2 / a1)
-    n_periods_before_culmination = abs((timedelta(seconds=pulse1_rlc + 5) + t0_rlc) // period)
-    n_periods_after_culminations = abs((timedelta(seconds=pulse2_rlc - 5) + t0_rlc) // period)
+    t0_rc = timedelta(seconds=amplitude / 2 / v1 + v1 / 2 / a1)
+    fo = local_culmination - culmination
+    n_periods_before_culmination = abs((timedelta(seconds=pulse1_rlc + 5) + t0_rc + fo) // period)
+    n_periods_after_culminations = abs((timedelta(seconds=pulse2_rlc - 5) + t0_rc + fo) // period)
     n_periods = n_periods_before_culmination + n_periods_after_culminations
 
-    start_time1 = culmination - (n_periods_before_culmination * period + t0_rlc)
+    start_time1 = culmination - (n_periods_before_culmination * period + t0_rc)
     start_time2 = start_time1 + timedelta(seconds=amplitude / v1 + v1 / 2 * (1 / a1 + 1 / d1) + dw1)
     pre_start_time = start_time1 - timedelta(minutes=1)
 
@@ -353,7 +349,7 @@ def make_carriage_motion_entry(culmination, local_culmination, pulse1_rlc, pulse
 
     if oscenabled:
         items.append({
-            'time': pre_start_time.tz_localize(TIMEZONE).isoformat(),
+            'time': pre_start_time.isoformat(),
             'position': pa,
             'speed': 800,
             'acceleration': 100,
@@ -361,14 +357,14 @@ def make_carriage_motion_entry(culmination, local_culmination, pulse1_rlc, pulse
         })
         for i in range(n_periods):
             items.append({
-                'time': (start_time1 + i * period).tz_localize(TIMEZONE).isoformat(),
+                'time': (start_time1 + i * period).isoformat(),
                 'position': pb,
                 'speed': speed1,
                 'acceleration': accel1,
                 'deceleration': decel1
             })
             items.append({
-                'time': (start_time2 + i * period).tz_localize(TIMEZONE).isoformat(),
+                'time': (start_time2 + i * period).isoformat(),
                 'position': pa,
                 'speed': speed2,
                 'acceleration': accel2,
@@ -376,7 +372,7 @@ def make_carriage_motion_entry(culmination, local_culmination, pulse1_rlc, pulse
             })
     else:
         items.append({
-            'time': pre_start_time.tz_localize(TIMEZONE).isoformat(),
+            'time': pre_start_time.isoformat(),
             'position': position,
             'speed': 800,
             'acceleration': 100,

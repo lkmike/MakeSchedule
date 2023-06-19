@@ -19,7 +19,7 @@ from astropy.coordinates import SkyCoord
 import astropy.time
 
 from defaults import DEFAULT_DURATION_BEFORE, DEFAULT_DURATION_AFTER, DEFAULT_APERTURE, DEFAULT_RETRACT, \
-    DEFAULT_TRACK, PLANETS, MOTION_DEBUG, debug_time
+    DEFAULT_TRACK, PLANETS, DEBUG, debug_time
 
 
 def get_efrat_job_stellar(source_name, ra, dec, azimuths, date_utc, n_days):
@@ -476,7 +476,7 @@ def fill_table_string_from_efrat(index, efrat_string, begin_datetime, end_dateti
     va = float(a[23])
     vh = float(a[24])
     if begin_datetime <= datetime_local_out <= end_datetime:
-        if MOTION_DEBUG:
+        if DEBUG:
             datetime_local_out = debug_time(index)
         idx = str(index)
         return [idx, az_out_str, datetime_local_out, h_per, DEFAULT_APERTURE, DEFAULT_RETRACT, DEFAULT_DURATION_BEFORE,
@@ -583,7 +583,7 @@ def generate_observer_transit_entry(azimuth, culmination, obs_start, rolling_sta
            f'перекатка в {rolling_start.strftime("%H:%M:%S")}\n'
 
 
-def feed_offset_to_time(fo, delta):
+def feed_offset_to_timedelta(fo, delta):
     return timedelta(seconds=fo / (1.0537 * np.cos(delta * np.pi / 180)))
 
 
