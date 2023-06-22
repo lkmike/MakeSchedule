@@ -117,9 +117,11 @@ def enable_solar_point(source_name: str):
     Output('solar-ref-time', 'disabled'),
     Output('solar-lon', 'disabled'),
     Output('solar-lat', 'disabled'),
+    Output('load-fits', 'disabled'),
+    Output('fits-plot', 'disabled'),
     Input('use-solar-object', 'value'),
 )
 def use_solar_point(disabled: int):
-    return [not bool(disabled)] * 4
+    return [not bool(disabled)] * 6
 
 

@@ -517,8 +517,8 @@ def make_object_label(object_name, use_solar_object, solar_object_name):
     if object_name in PLANETS:
         object_label = object_label[1:-1]
         if use_solar_object:
-            object_label += f':{solar_object_name}'
-        object_label.replace(' ', ':')
+            object_label += f'.{solar_object_name}'
+        object_label.replace(' ', '.')
     return object_label
 
 
@@ -621,3 +621,9 @@ def update_from_updated_antenna_table(data_frame, antenna_frame, make_default_pa
     data_frame['idx'] = data_frame.index
 
     return data_frame
+
+
+card_style = {'width': '100%',
+              'padding': '0px',
+              'border-width': '0px'
+              }  # , 'margin-top': '10px', 'margin-bottom': '0px', 'margin-left': '5px', 'margin-right': '5px'}

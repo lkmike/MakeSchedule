@@ -7,19 +7,17 @@ import dash_split_pane
 
 from datetime import datetime
 
-from defaults import FAST_FEED_POSITION, SENSITIVE_FEED_POSITION, SOLAR_FEED_POSITION, begin_observations_today, \
-    end_observations_today, DEFAULT_BEGIN_OBSERVATIONS, DEFAULT_END_OBSERVATIONS, DEFAULT_AZIMUTH_LIST, DEFAULT_SOLAR_X, \
-    DEFAULT_SOLAR_Y, DEFAULT_AIA_TIME, DEBUG, DEFAULT_OBJECT, DEFAULT_OBJECT_ID
+from defaults import FAST_FEED_POSITION, SENSITIVE_FEED_POSITION, SOLAR_FEED_POSITION, DEFAULT_BEGIN_OBSERVATIONS, \
+    DEFAULT_END_OBSERVATIONS, DEFAULT_AZIMUTH_LIST, DEFAULT_SOLAR_X, DEFAULT_SOLAR_Y, DEFAULT_AIA_TIME, DEBUG, \
+    DEFAULT_OBJECT, DEFAULT_OBJECT_ID
+from fits_view import fits_modal
+from utils import card_style
 
 print('view enters')
 
 load_figure_template('darkly')
 
 # fig_style = {'height': '100%', 'width': '100%'}
-card_style = {'width': '100%',
-              'padding': '0px',
-              'border-width': '0px'
-              }  # , 'margin-top': '10px', 'margin-bottom': '0px', 'margin-left': '5px', 'margin-right': '5px'}
 
 fits_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -107,7 +105,7 @@ tab_stellar = dbc.Container([
                                            class_name='m-3 d-inline-block')], width=12)]),
             dbc.Row([
                 dbc.Col([dbc.Label('ID'),
-                         dbc.Row(dbc.Col(dbc.Input(id='solar-object-name', size='sm', value='NOAA_')))], width=3),
+                         dbc.Row(dbc.Col(dbc.Input(id='solar-object-name', size='sm', value='AR')))], width=3),
                 dbc.Col([dbc.Label([html.I('t'), html.Sub(" ref")]),
                          dbc.Row([
                              dbc.Col(dbc.Input(id='solar-ref-time', value=DEFAULT_AIA_TIME(), debounce=True,
@@ -130,9 +128,11 @@ tab_stellar = dbc.Container([
         ]),
 
         dbc.CardBody([
-            dbc.Row([dbc.Button('Загрузить изображение', id='load-fits', color='primary', className='me-2', size='sm',
-                                style={'minWidth': '200px', 'width': '200px'})]),
+            dbc.Row([dbc.Button('Загрузить FITS', id='load-fits', color='primary', className='me-2', size='sm',
+                                style={'minWidth': '200px', 'width': '200px'})], class_name='mt-3'),
         ]),
+
+        html.Div(id='load-aia-sink', style={'visibility': 'hidden'}),
 
         dbc.CardBody([
             dbc.Row([
@@ -341,7 +341,7 @@ carriage_position_hints = html.Datalist(children=[
 ], id='carriage-position-hints')
 
 right_pan = dbc.Container(
-    children=[common_ctrl, mode_tabs, task_pane, sink, progress_modal, carriage_position_hints],
+    children=[common_ctrl, mode_tabs, task_pane, sink, progress_modal, carriage_position_hints, fits_modal],
     fluid=True, class_name='force-fill-height h-100 d-flex flex-column',
     style={'padding': '0px'}
 )
