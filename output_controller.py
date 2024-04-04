@@ -351,7 +351,7 @@ def make_carriage_motion_entry(culmination, local_culmination, pulse1_rlc, pulse
         items.append({
             'time': pre_start_time.isoformat(),
             'position': pa,
-            'speed': 800,
+            'speed': 600,
             'acceleration': 100,
             'deceleration': 100
         })
@@ -374,7 +374,7 @@ def make_carriage_motion_entry(culmination, local_culmination, pulse1_rlc, pulse
         items.append({
             'time': pre_start_time.isoformat(),
             'position': position,
-            'speed': 800,
+            'speed': 600,
             'acceleration': 100,
             'deceleration': 100
         })

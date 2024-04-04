@@ -158,7 +158,7 @@ def main_csi_entry_template_use_script(source: str, az: str, culmination: dateti
         51: '44:00:00',
         41: '36:00:00'
     }
-    return f'{f"{source}{az}":15}' \
+    return f'{f"{source}{az:+03.0f}":15}' \
            f'{culmination.strftime("%H:%M:%S.%f")[:-4]:15}' \
            f'{f"{az}:00:00.0":15}' \
            f'{f"-{before.seconds / 60:4.2f}/{after.seconds / 60:4.2f}":15}' \
@@ -193,7 +193,8 @@ def write_main_csi(file_name: str, object_name: str, table: pd.DataFrame):
                 f.write(f"\nObsDate = {current_date.strftime('%Y.%m.%d')}\n\n")
 
             if retract:
-                f.write(f"\nJoin = {join_lookup[azimuth]}\n")
+                print(type(azimuth))
+                f.write(f"\nJoin = {join_lookup[f'{azimuth:+03}']}\n")
 
             f.write(main_csi_entry_template_use_script(object_name, azimuth, date_time, timedelta(minutes=before),
                                                        timedelta(minutes=after), aperture))
@@ -225,7 +226,7 @@ Source         ObsTime        Duration       Altitude
 
 def flat_csi_entry_template(source: str, az: str, culmination: datetime, before: timedelta, after: timedelta,
                             h_per: float):
-    return f"{f'{source}{az}':15}" + \
+    return f"{f'{source}{az:+03.0f}':15}" + \
         f"{culmination.strftime('%H:%M:%S.%f')[:-4]:15}" + \
         f"{f'-{before.seconds / 60:4.2f}/{after.seconds / 60:4.2f}':15}" + \
         f"{deg_to_dms(h_per):15}" + \
@@ -479,6 +480,8 @@ def fill_table_string_from_efrat(index, efrat_string, begin_datetime, end_dateti
         if DEBUG:
             datetime_local_out = debug_time(index)
         idx = str(index)
+        # print(f'index: {index}')
+
         return [idx, az_out_str, datetime_local_out, h_per, DEFAULT_APERTURE, DEFAULT_RETRACT, DEFAULT_DURATION_BEFORE,
                 DEFAULT_DURATION_AFTER, DEFAULT_TRACK, a_obj, h_obj, ra_degrees, dec_degrees, sid_time_degrees, refr,
                 nut_ra, p_obj, p_diag, va, vh, std]

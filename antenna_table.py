@@ -32,9 +32,15 @@ def std_head():
     ])
 
 
+def proxy_make_checkbox(ident, val):
+    print('id: ', ident['index'])
+    return make_checkbox(ident, val)
+
 def std_column(pd_table):
     return pd_table[['idx', 'std']].apply(
-        lambda x: make_checkbox({'type': 'std', 'index': str(x['idx'])}, x['std']), axis=1)
+        lambda x: make_checkbox({'type': 'std', 'index': str(x['idx'])}, x['std']),
+        axis=1
+    )
 
 
 def motion_head():

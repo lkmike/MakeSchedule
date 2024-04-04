@@ -5,7 +5,7 @@ from datetime import datetime
 import astropy
 import dash
 from dash import ctx
-from dash.dependencies import Input, Output, State, ALL
+from dash.dependencies import Input, Output, State, ALL, MATCH
 from dash.exceptions import PreventUpdate
 
 from utils import make_object_label, get_efrat_job_stellar, get_efrat_job_object, \
@@ -163,6 +163,7 @@ def std_set_all_onclick(n1, n2, cbs):
     background=True,
     progress=[Output('modal-progress', 'is_open'), Output('update-progress', 'value'),
               Output('update-progress', 'max')],
+    prevent_initial_call=False
 )
 def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, azimuths: str, begin_time: str,
                              end_time: str, use_solar_object: int, solar_object_name: str, solar_ref_time: str,
@@ -172,6 +173,7 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
                              old_load_track_state,
                              json_data,
                              ):
+    # print(f'========= == ===========')
     set_progress((True, 100, 100))
 
     trigger = ctx.triggered_id
@@ -191,7 +193,11 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
             return old_antenna_table, old_job_summary, old_run_csmake_state, old_load_csi_state, old_load_track_state, \
                 "'" + df.to_json(date_format='iso', orient='split') + "'"
         elif trigger.type == 'std':
-            df['std'] = std
+            for e in ctx.triggered:
+                prop_ids_key = e['prop_id']
+                value = e['value']
+                index = int(ctx.triggered_prop_ids[prop_ids_key]['index'])
+                df.loc[index, 'std'] = value
 
     try:
         azimuths_ = azimuths.replace(',', ' ').split()
@@ -226,10 +232,10 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
             if 'The object is not observable' in el:
                 print(f'EFRAT говорит, "{el}"')
                 continue
-            standard = 0
+            standard = False
             try:
                 standard = df['std'].iloc[i]
-            except (AttributeError, IndexError, TypeError):
+            except (AttributeError, IndexError, TypeError) as ex:
                 pass
             table_row = fill_table_string_from_efrat(i, el, begin_datetime, end_datetime, standard, dont_use_config)
             if table_row:
@@ -243,7 +249,8 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
 
             mod_table_num = []
             for i, el in enumerate(table_num):
-                if el[20] == 1:
+                if el[20]:
+                    # print(f'skip std: {i}')
                     mod_table_num.append(el)
                     continue
 
@@ -258,7 +265,8 @@ def recalculate_culminations(set_progress, object_name: str, ra: str, dec: str, 
                 s = get_efrat_job_stellar(object_label, el_ra, el_dec, el_azimuth, date_utc, '1')
                 efrat_strings = run_efrat(s)
                 # print(efrat_strings)
-                standard = 0
+                standard = False
+                # print(f'fill non-std: {i}')
                 try:
                     standard = df['std'].iloc[i]
                 except (AttributeError, IndexError, TypeError):

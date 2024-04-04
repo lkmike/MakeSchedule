@@ -58,16 +58,16 @@ def modal_fits_cancel(_):
 @app.callback(
     Output('modal-fits', 'is_open'),
     Output('fits-plot', 'children'),
+    Output('solar-ref-time', 'value'),
     Input('load-fits-ok', 'n_clicks'),
-    Input({'type': 'query_result_table', 'index': '0'}, 'active_cell'),
+    State({'type': 'query_result_table', 'index': '0'}, 'active_cell'),
     State({'type': 'query_result_table', 'index': '0'}, 'data')
 )
 def modal_fits_ok(_, cell, data):
+    print('Modal OK')
     if ctx.triggered_id == 'load-fits-ok':
         try:
             row = cell['row']
-            # print(row)
-            # print(data[row])
             dtime = datetime.fromisoformat(data[row]['Start Time']).astimezone(timezone('UTC'))
             query = (attr.Time(dtime - timedelta(seconds=5), dtime + timedelta(seconds=5)),
                      attr.Instrument('AIA'),
@@ -81,9 +81,11 @@ def modal_fits_ok(_, cell, data):
                 response = requests.get(url)
                 file_path = f'{dir_name}/{file_name}'
                 open(file_path, "wb").write(response.content)
-                graph = fits_plot(file_path)
-                return False, graph
-            # return False
+                graph, tref = fits_plot_and_time(file_path)
+                return False, graph, tref
+            # file_path = '/home/michael/PycharmProjects/MakeSchedule/AIA20230624_073300_0171.fits'
+            # graph, tref = fits_plot_and_time(file_path)
+            # return False, graph, tref
         except (IndexError, KeyError):
             pass
 
@@ -195,7 +197,7 @@ def select_item(cell, data):
 #     Input('load-fits', 'n_clicks'),
 #     prevent_initial_call=False
 # )
-def fits_plot(fits_filename):
+def fits_plot_and_time(fits_filename):
 
     raw_map = sunpy.map.Map(fits_filename)
 
@@ -235,7 +237,14 @@ def fits_plot(fits_filename):
     fig.layout.margin.b = 0
     fig.layout.hoverlabel = {'font_family': 'monospace'}
 
-    return dcc.Graph(figure=fig, style={'width': '100%', 'height': '100%'}, id='AIA-plot')
+    from astropy.time import TimezoneInfo
+
+    t_obs_datetime = raw_map.date.to_datetime(timezone=TimezoneInfo(utc_offset=3*u.hour))
+    print(raw_map.date)
+    print(t_obs_datetime)
+    t_obs = t_obs_datetime.replace(tzinfo=timezone('UTC')).isoformat()
+
+    return dcc.Graph(figure=fig, style={'width': '100%', 'height': '100%'}, id='AIA-plot'), t_obs
 
 
 @app.callback(

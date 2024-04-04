@@ -20,7 +20,7 @@ DEFAULT_CARRIAGE_DECEL1 = 200
 DEFAULT_CARRIAGE_DWELL1 = 2
 DEFAULT_CARRIAGE_MOTION1 = '/'.join(list(map(str, [DEFAULT_CARRIAGE_SPEED1, DEFAULT_CARRIAGE_ACCEL1,
                                                    DEFAULT_CARRIAGE_DECEL1, DEFAULT_CARRIAGE_DWELL1])))
-DEFAULT_CARRIAGE_SPEED2 = 800
+DEFAULT_CARRIAGE_SPEED2 = 600
 DEFAULT_CARRIAGE_ACCEL2 = 200
 DEFAULT_CARRIAGE_DECEL2 = 200
 DEFAULT_CARRIAGE_DWELL2 = 2
@@ -85,7 +85,7 @@ def end_observations_tomorrow():
 
 
 DEFAULT_BEGIN_OBSERVATIONS = begin_observations_today
-DEFAULT_END_OBSERVATIONS = end_observations_tomorrow
+DEFAULT_END_OBSERVATIONS = end_observations_today
 DEFAULT_AZIMUTH_LIST = '+24, +12, +0, -12, -24'
 DEFAULT_SOLAR_X = 0
 DEFAULT_SOLAR_Y = 0
@@ -93,7 +93,7 @@ DEFAULT_SOLAR_Y = 0
 
 def presumable_aia_time():
     current_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
-    return (current_hour - timedelta(hours=1)).astimezone(timezone('UTC')).isoformat()
+    return (current_hour - timedelta(hours=3)).astimezone(timezone('UTC')).isoformat()
 
 
 DEFAULT_AIA_TIME = presumable_aia_time

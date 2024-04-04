@@ -290,7 +290,7 @@ task_pane = dbc.Container([
                             dbc.Input(id='job-name', size='sm',
                                       style={'width': '10em', 'min-width': '10em', 'display': 'inline'},
                                       class_name='mx-1',
-                                      disabled=True),
+                                      disabled=False),
                         ], style={'min-width': '270px', 'width': '270px', 'display': 'inline'})
                     ])], width=4),
 

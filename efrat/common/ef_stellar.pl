@@ -4,7 +4,7 @@ use Switch;
 
 my $num_azimuths = $ARGV[0] || 61; # vvedite zdes kol-vo azimutov dlja vybora faila scenariya i t.p.
 my $beg_antenna = 30; # nachalo set antenna  v minutah
-my $inputfile = $ARGV[1] || "efrat_sun.dat"; # vhodnoj fail s efemeridami
+my $inputfile = $ARGV[1]п╥п╩п╬п╧ я┬п╨п╟я└ || "efrat_sun.dat"; # vhodnoj fail s efemeridami
 my $mainobsfile = $ARGV[2] || "mainobs_sun.txt"; # vyhodnoj fail s zadaniem dlja registracii
 my $roundfile = $ARGV[3];# esli ne zadano, imya faila s zadaniem dlja krugovogo otrazhatelya formiruetsja avtomaticheski
 my $flatfile = $ARGV[4];#esli ne zadano, imya faila s zadaniem dlja ploskogo otrazhatelya formiruetsja avtomaticheski
@@ -89,9 +89,9 @@ switch($num_azimuths){
 }
 
 %M = qw(Jan 0 Feb 1 Mar 2 Apr 3 May 4 Jun 5 Jul 6 Aug 7 Sep 8 Oct 9 Nov 10 Dec 11);
-%W = qw(Sun Воскресенье Mon Понедельник Tue Вторник Wed Среда Thu Четверг Fri Пятница Sat Суббота);
+%W = qw(Sun О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ Mon О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ Tue О©╫О©╫О©╫О©╫О©╫О©╫О©╫ Wed О©╫О©╫О©╫О©╫О©╫ Thu О©╫О©╫О©╫О©╫О©╫О©╫О©╫ Fri О©╫О©╫О©╫О©╫О©╫О©╫О©╫ Sat О©╫О©╫О©╫О©╫О©╫О©╫О©╫);
 
-open(FILE, $inputfile) || die "Входной файл $inputfile не найден!";;
+open(FILE, $inputfile) || die "О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ $inputfile О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫!";;
 my @file = <FILE>;
 close(FILE);
 $col = @file;
@@ -140,7 +140,7 @@ $targetfil = sprintf("%s%x%02ds.csi", substr($year, 3, 1), $month, $day);
 $targetflatfil = sprintf("%s%x%02df.csi", substr($year, 3, 1), $month, $day);
 my $roundfile = $ARGV[3] || $targetfil;
 my $flatfile = $ARGV[4] || $targetflatfil;
-print "вх: $inputfile \t вых: 1) $mainobsfile \t 2) $roundfile\t 3) $flatfile\n";
+print "О©╫О©╫: $inputfile \t О©╫О©╫О©╫: 1) $mainobsfile \t 2) $roundfile\t 3) $flatfile\n";
 open (ROUNDFILE, ">$roundfile");
 open (MAINOBSFILE, ">$mainobsfile");
 open (FLATFILE, ">$flatfile");
@@ -191,8 +191,8 @@ print MAINOBSFILE "[observation]\n";
 
 $weekday1 = '';
 if ($vynosfile ne "0") {
-    open(VFILE, $vynosfile) || die "Входной файл выносов $vynosfile не найден!";;
-    my @vfile = <VFILE>; # Прочитать все строки файла в массив @vfile
+    open(VFILE, $vynosfile) || die "О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫ $vynosfile О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫!";;
+    my @vfile = <VFILE>; # О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫ О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ @vfile
     foreach  my $line (@vfile) {
         my ($k, $v) = split(/:/, $line);
         $hash{int($k)} = int($v);
