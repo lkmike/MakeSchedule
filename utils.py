@@ -446,8 +446,8 @@ def fill_table_string_from_efrat(index, efrat_string, begin_datetime, end_dateti
 
     datetime_local_out = efrat_to_datetime(*a[0:6])
     # Долбаный efrat не знает про отвод часов на час назад, зато efratp2015 использует только UT/UTC
-    if dont_use_config:
-        datetime_local_out = (datetime_local_out + timedelta(hours=-1))
+    # if dont_use_config:
+    #     datetime_local_out = (datetime_local_out + timedelta(hours=-1))
     az_out_str = f'{float(a[6]):+03.0f}'
     h_per = float(a[7])
     a_obj = float(a[8])
@@ -501,7 +501,7 @@ def get_rolled_point_ra_dec(ref_point, ref_time: astropy.time.Time, obs_time: as
 
 def run_efrat(s):
     s_bytes = str.encode(s)
-    p = subprocess.run('export LD_LIBRARY_PATH=./efrat/stellar; efrat/stellar/efrat', stdout=subprocess.PIPE,
+    p = subprocess.run('export LD_LIBRARY_PATH=./efrat/stellar; efrat/stellar/efrat2025_1', stdout=subprocess.PIPE,
                        input=s_bytes, shell=True)
     if p.returncode != 0:
         dbc.Modal([

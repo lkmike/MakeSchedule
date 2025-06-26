@@ -9,6 +9,12 @@ import diskcache
 import flask
 server = flask.Flask(__name__)
 
+from defaults import HTTP_PROXY, HTTPS_PROXY
+
+import os
+os.environ["HTTP_PROXY"] = HTTP_PROXY
+os.environ["HTTPS_PROXY"] = HTTPS_PROXY
+
 
 cache = diskcache.Cache("./cache")
 # long_callback_manager = DiskcacheLongCallbackManager(cache)

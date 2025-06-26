@@ -2,6 +2,9 @@ from datetime import date, datetime, timedelta
 
 from pytz import timezone
 
+HTTP_PROXY = "http://192.168.11.17:8080"
+HTTPS_PROXY = "http://192.168.11.17:8080"
+
 # Расписания антенны
 DEFAULT_DURATION_BEFORE = 6.1
 DEFAULT_DURATION_AFTER = 6.6
