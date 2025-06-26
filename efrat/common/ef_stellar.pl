@@ -4,7 +4,7 @@ use Switch;
 
 my $num_azimuths = $ARGV[0] || 61; # vvedite zdes kol-vo azimutov dlja vybora faila scenariya i t.p.
 my $beg_antenna = 30; # nachalo set antenna  v minutah
-my $inputfile = $ARGV[1]злой шкаф || "efrat_sun.dat"; # vhodnoj fail s efemeridami
+my $inputfile = $ARGV[1] || "efrat_sun.dat"; # vhodnoj fail s efemeridami
 my $mainobsfile = $ARGV[2] || "mainobs_sun.txt"; # vyhodnoj fail s zadaniem dlja registracii
 my $roundfile = $ARGV[3];# esli ne zadano, imya faila s zadaniem dlja krugovogo otrazhatelya formiruetsja avtomaticheski
 my $flatfile = $ARGV[4];#esli ne zadano, imya faila s zadaniem dlja ploskogo otrazhatelya formiruetsja avtomaticheski

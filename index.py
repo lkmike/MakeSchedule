@@ -8,7 +8,7 @@ logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 
 if __name__ == "__main__":
-    app.run_server(
+    app.run(
         # host=APP_HOST,
         port=8888,
         debug=False,

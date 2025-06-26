@@ -501,7 +501,8 @@ def get_rolled_point_ra_dec(ref_point, ref_time: astropy.time.Time, obs_time: as
 
 def run_efrat(s):
     s_bytes = str.encode(s)
-    p = subprocess.run('export LD_LIBRARY_PATH=./efrat/stellar; efrat/stellar/efrat2025_1', stdout=subprocess.PIPE,
+    p = subprocess.run(#'export LD_LIBRARY_PATH=./efrat/stellar; '
+                       'efrat/stellar/efrat2025_1', stdout=subprocess.PIPE,
                        input=s_bytes, shell=True)
     if p.returncode != 0:
         dbc.Modal([
